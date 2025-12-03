@@ -72,6 +72,18 @@ target_include_directories(nds-core PUBLIC
     "m-nds-core/src/main/c++/include"
 )
 
+add_library(nds-core-test-utils SHARED
+    "m-nds-core/src/test/c++/testControlSystem/ndsTestFactory.cpp"
+    "m-nds-core/src/test/c++/testControlSystem/ndsTestInterface.cpp"
+    "m-nds-core/src/test/c++/testControlSystem/ndsTestUtils.cpp"
+)
+target_include_directories(nds-core-test-utils PUBLIC
+    "m-nds-core/src/test/c++/include/"
+)
+target_include_directories(nds-core-test-utils PRIVATE
+    "m-nds-core/src/main/c++/include"
+)
+
 # ------------------------------ NDS-DeviceAccess ------------------------------
 add_library(nds-da SHARED
     "src/main/c++/nds-da/nds-da.cpp"
@@ -95,8 +107,11 @@ enable_testing()
 add_executable(nds-da-test
     "src/test/c++/nds-da-test/nds-da-test.cpp"
 )
+target_compile_options(nds-da-test PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(nds-da-test
     nds-da
+    nds-core
+    nds-core-test-utils
     GTest::gtest_main
 )
 
