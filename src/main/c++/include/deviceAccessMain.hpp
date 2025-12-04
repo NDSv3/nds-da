@@ -2,12 +2,15 @@
 #define NDS_DA_MAIN_H
 
 #include <nds3/nds.h>
+#include <string>
+#include "nds3/pvVariableIn.h"
 
 class DADevice {
 private:
     std::string deviceName;
     nds::Port rootNode;
-    nds::PVVariableIn<int32_t> testPV;
+
+    nds::PVVariableIn<std::string> memoryMapFile, deviceMapFile;
 
 public:
     DADevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params);

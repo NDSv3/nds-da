@@ -1,12 +1,27 @@
 #include "deviceAccessMain.hpp"
 #include "nds3/definitions.h"
+#include "nds3/exceptions.h"
 
-DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
-    : deviceName(deviceName), rootNode(deviceName), testPV("testPV") {
+DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params) :
+    deviceName(deviceName),
+    rootNode(deviceName),
+    memoryMapFile("memoryMapFile"),
+    deviceMapFile("deviceMapFile") {
 
-    testPV.setValue(1e5);
+    // Obtain device and memory map files
+    try {
+        deviceMapFile.setValue(params.at("DADeviceMapFile"));
+    } catch (const std::out_of_range&) {
+        // ndsErrorStream(rootNode) << "Missing DADeviceMapFile" << std::endl;
+        throw nds::NdsError("Missing DADeviceMapFile parameter");
+    }
 
-    rootNode.addChild(testPV);
+    try {
+        memoryMapFile.setValue(params.at("DAMemoryMapFile"));
+    } catch (const std::out_of_range&) {
+        // ndsErrorStream(rootNode) << "Missing DAMemoryMapFile" << std::endl;
+        throw nds::NdsError("Missing DAMemoryMapFile parameter");
+    }
     rootNode.initialize(this, factory);
 }
 

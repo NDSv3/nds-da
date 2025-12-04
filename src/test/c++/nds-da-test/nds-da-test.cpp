@@ -13,20 +13,37 @@ int main(int argc, char** argv) {
     return RUN_ALL_TESTS();
 }
 
+TEST(NDS_DA_Tests, TestMissingDeviceMapException) {
+    nds::Factory factory("test");
+    nds::namedParameters_t params;
+
+    params.emplace("DAMemoryMapFile", "memoryMap.txt");
+
+    ASSERT_THROW(
+        factory.createDevice("DADevice", "deviceAccessDevice", params),
+        nds::NdsError
+    );
+}
+
+TEST(NDS_DA_Tests, TestMissingMemoryMapException) {
+    nds::Factory factory("test");
+    nds::namedParameters_t params;
+
+    params.emplace("DADeviceMapFile", "memoryMap.txt");
+
+    ASSERT_THROW(
+        factory.createDevice("DADevice", "deviceAccessDevice", params),
+        nds::NdsError
+    );
+}
+
 TEST(NDS_DA_Tests, DeviceCreationTest) {
     nds::Factory factory("test");
     nds::namedParameters_t params;
-    int value;
-    timespec timestamp;
 
-    params.emplace("param1", "value1");
+    params.emplace("DAMemoryMapFile", "memoryMap.txt");
+    params.emplace("DADeviceMapFile", "memoryMap.txt");
 
     factory.createDevice("DADevice", "deviceAccessDevice", params);
-
-    nds::tests::TestControlSystemInterfaceImpl* test_iface = nds::tests::TestControlSystemInterfaceImpl::getInstance("deviceAccessDevice");
-
-    test_iface->readCSValue("/deviceAccessDevice-testPV", &timestamp, &value);
-    EXPECT_EQ(value, 1e5);
-
     factory.destroyDevice("deviceAccessDevice");
 }

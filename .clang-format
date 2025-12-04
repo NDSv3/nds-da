@@ -3,6 +3,7 @@ BasedOnStyle: Google
 AlignAfterOpenBracket: BlockIndent
 AlignConsecutiveAssignments: 'true'
 AlignOperands: 'true'
+BreakConstructorInitializers: AfterColon
 IndentWidth: '4'
 IndentWrappedFunctionNames: 'true'
 KeepEmptyLinesAtTheStartOfBlocks: 'true'
