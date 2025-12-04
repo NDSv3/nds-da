@@ -14,5 +14,6 @@ SpaceBeforeParens: ControlStatements
 TabWidth: '4'
 UseTab: Never
 ColumnLimit: 0
+AccessModifierOffset: -4
 
 ...
