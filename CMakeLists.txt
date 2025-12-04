@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ------------------------------ NDS-Core Library ------------------------------
-add_library(nds-core SHARED
+add_library(nds3 SHARED
     "m-nds-core/src/main/c++/nds/base.cpp"
     "m-nds-core/src/main/c++/nds/baseImpl.cpp"
     "m-nds-core/src/main/c++/nds/dataAcquisition.cpp"
@@ -68,19 +68,19 @@ add_library(nds-core SHARED
     "m-nds-core/src/main/c++/nds/waveformGeneration.cpp"
     "m-nds-core/src/main/c++/nds/waveformGenerationImpl.cpp"
 )
-target_include_directories(nds-core PUBLIC
+target_include_directories(nds3 PUBLIC
     "m-nds-core/src/main/c++/include"
 )
 
-add_library(nds-core-test-utils SHARED
+add_library(nds3-testcontrolsystem SHARED
     "m-nds-core/src/test/c++/testControlSystem/ndsTestFactory.cpp"
     "m-nds-core/src/test/c++/testControlSystem/ndsTestInterface.cpp"
     "m-nds-core/src/test/c++/testControlSystem/ndsTestUtils.cpp"
 )
-target_include_directories(nds-core-test-utils PUBLIC
+target_include_directories(nds3-testcontrolsystem PUBLIC
     "m-nds-core/src/test/c++/include/"
 )
-target_include_directories(nds-core-test-utils PRIVATE
+target_include_directories(nds3-testcontrolsystem PRIVATE
     "m-nds-core/src/main/c++/include"
 )
 
@@ -91,7 +91,7 @@ add_library(nds-da SHARED
 target_include_directories(nds-da PRIVATE
     "src/main/c++/include"
 )
-target_link_libraries(nds-da PRIVATE nds-core)
+target_link_libraries(nds-da PRIVATE nds3)
 target_compile_options(nds-da PRIVATE -Wall -Wextra -Wpedantic)
 set(CMAKE_CXX_CLANG_TIDY clang-tidy)
 
@@ -110,8 +110,8 @@ add_executable(nds-da-test
 target_compile_options(nds-da-test PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(nds-da-test
     nds-da
-    nds-core
-    nds-core-test-utils
+    nds3
+    nds3-testcontrolsystem
     GTest::gtest_main
 )
 
