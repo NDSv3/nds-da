@@ -2,11 +2,11 @@
 #include "nds3/definitions.h"
 #include "nds3/exceptions.h"
 
-DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params) :
-    deviceName(deviceName),
-    rootNode(deviceName),
-    memoryMapFile("memoryMapFile"),
-    deviceMapFile("deviceMapFile") {
+DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
+    : deviceName(deviceName),
+      rootNode(deviceName),
+      memoryMapFile("memoryMapFile"),
+      deviceMapFile("deviceMapFile") {
 
     // Obtain device and memory map files
     try {
@@ -22,6 +22,10 @@ DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const n
         // ndsErrorStream(rootNode) << "Missing DAMemoryMapFile" << std::endl;
         throw nds::NdsError("Missing DAMemoryMapFile parameter");
     }
+
+    rootNode.addChild(memoryMapFile);
+    rootNode.addChild(deviceMapFile);
+
     rootNode.initialize(this, factory);
 }
 

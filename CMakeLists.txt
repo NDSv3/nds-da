@@ -114,6 +114,9 @@ target_link_libraries(nds-da-test
     nds3-testcontrolsystem
     GTest::gtest_main
 )
+target_include_directories(nds-da-test PRIVATE
+    "src/test/c++/include"
+)
 
 include(GoogleTest)
 gtest_discover_tests(nds-da-test)
