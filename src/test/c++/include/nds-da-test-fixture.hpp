@@ -7,16 +7,16 @@
 
 class ndsDABasicDeviceFixture : public testing::Test {
 protected:
-    const std::string memoryMapFile = "memoryMap.txt";
-    const std::string deviceMapFile = "deviceMap.txt";
+    const std::string DEVICE_ALIAS   = "deviceAlias";
+    const std::string DEVICE_MAPFILE = "deviceMap.txt";
 
     nds::Factory factory;
     nds::namedParameters_t params;
     nds::tests::TestControlSystemInterfaceImpl* iface;
 
     ndsDABasicDeviceFixture() : factory("test") {
-        params.emplace("DAMemoryMapFile", memoryMapFile);
-        params.emplace("DADeviceMapFile", deviceMapFile);
+        params.emplace("DADeviceAlias", DEVICE_ALIAS);
+        params.emplace("DADeviceMapFile", DEVICE_MAPFILE);
     }
     // ~ndsDABasicDeviceFixture() override {}
 

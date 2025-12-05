@@ -40,22 +40,22 @@ TEST(NDS_DA_Tests, DeviceCreationTest) {
     nds::Factory factory("test");
     nds::namedParameters_t params;
 
-    params.emplace("DAMemoryMapFile", "memoryMap.txt");
+    params.emplace("DADeviceAlias", "deviceAlias");
     params.emplace("DADeviceMapFile", "memoryMap.txt");
 
     factory.createDevice("DADevice", "deviceAccessDevice", params);
     factory.destroyDevice("deviceAccessDevice");
 }
 
-TEST_F(ndsDABasicDeviceFixture, GetDeviceFiles) {
+TEST_F(ndsDABasicDeviceFixture, GetDeviceMapPVs) {
     std::string tmp_string;
     timespec tmp_time;
 
-    iface->readCSValue("/deviceAccessDevice-memoryMapFile", &tmp_time, &tmp_string);
+    iface->readCSValue("/deviceAccessDevice-deviceAlias", &tmp_time, &tmp_string);
     EXPECT_NE(tmp_time.tv_sec, 0);
-    EXPECT_EQ(tmp_string, "memoryMap.txt");
+    EXPECT_EQ(tmp_string, DEVICE_ALIAS);
 
     iface->readCSValue("/deviceAccessDevice-deviceMapFile", &tmp_time, &tmp_string);
     EXPECT_NE(tmp_time.tv_sec, 0);
-    EXPECT_EQ(tmp_string, "deviceMap.txt");
+    EXPECT_EQ(tmp_string, DEVICE_MAPFILE);
 }

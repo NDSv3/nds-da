@@ -5,7 +5,7 @@
 DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
     : deviceName(deviceName),
       rootNode(deviceName),
-      memoryMapFile("memoryMapFile"),
+      deviceAlias("deviceAlias"),
       deviceMapFile("deviceMapFile") {
 
     // Obtain device and memory map files
@@ -17,13 +17,13 @@ DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const n
     }
 
     try {
-        memoryMapFile.setValue(params.at("DAMemoryMapFile"));
+        deviceAlias.setValue(params.at("DADeviceAlias"));
     } catch (const std::out_of_range&) {
         // ndsErrorStream(rootNode) << "Missing DAMemoryMapFile" << std::endl;
         throw nds::NdsError("Missing DAMemoryMapFile parameter");
     }
 
-    rootNode.addChild(memoryMapFile);
+    rootNode.addChild(deviceAlias);
     rootNode.addChild(deviceMapFile);
 
     rootNode.initialize(this, factory);

@@ -10,7 +10,7 @@ private:
     std::string deviceName;
     nds::Port rootNode;
 
-    nds::PVVariableIn<std::string> memoryMapFile, deviceMapFile;
+    nds::PVVariableIn<std::string> deviceAlias, deviceMapFile;
 
 public:
     DADevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params);
