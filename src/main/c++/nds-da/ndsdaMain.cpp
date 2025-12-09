@@ -1,8 +1,10 @@
-#include "deviceAccessMain.hpp"
+#include "ndsdaMain.hpp"
 #include "nds3/definitions.h"
 #include "nds3/exceptions.h"
 
-DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
+using ndsda::Device;
+
+Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
     : deviceName(deviceName),
       rootNode(deviceName),
       deviceAlias("deviceAlias"),
@@ -10,17 +12,17 @@ DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const n
 
     // Obtain device and memory map files
     try {
-        deviceMapFile.setValue(params.at("DADeviceMapFile"));
+        deviceMapFile.setValue(params.at("DeviceMapFile"));
     } catch (const std::out_of_range&) {
         // ndsErrorStream(rootNode) << "Missing DADeviceMapFile" << std::endl;
-        throw nds::NdsError("Missing DADeviceMapFile parameter");
+        throw nds::NdsError("Missing DeviceMapFile parameter");
     }
 
     try {
-        deviceAlias.setValue(params.at("DADeviceAlias"));
+        deviceAlias.setValue(params.at("DeviceAlias"));
     } catch (const std::out_of_range&) {
         // ndsErrorStream(rootNode) << "Missing DAMemoryMapFile" << std::endl;
-        throw nds::NdsError("Missing DAMemoryMapFile parameter");
+        throw nds::NdsError("Missing MemoryMapFile parameter");
     }
 
     rootNode.addChild(deviceAlias);
@@ -29,6 +31,6 @@ DADevice::DADevice(nds::Factory& factory, const std::string& deviceName, const n
     rootNode.initialize(this, factory);
 }
 
-DADevice::~DADevice() {}
+Device::~Device() {}
 
-NDS_DEFINE_DRIVER(DADevice, DADevice)
+NDS_DEFINE_DRIVER(DADevice, Device)

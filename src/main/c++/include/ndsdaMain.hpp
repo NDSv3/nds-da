@@ -5,7 +5,11 @@
 #include <string>
 #include "nds3/pvVariableIn.h"
 
-class DADevice {
+#include "ndsdaFileParser.hpp"
+
+namespace ndsda {
+
+class Device {
 private:
     std::string deviceName;
     nds::Port rootNode;
@@ -13,8 +17,10 @@ private:
     nds::PVVariableIn<std::string> deviceAlias, deviceMapFile;
 
 public:
-    DADevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params);
-    ~DADevice();
+    Device(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params);
+    ~Device();
 };
+
+}  // namespace ndsda
 
 #endif  //! NDS_DA_MAIN_H

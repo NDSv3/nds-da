@@ -16,7 +16,7 @@ TEST(NDS_DA_Tests, TestMissingDeviceMapException) {
     nds::Factory factory("test");
     nds::namedParameters_t params;
 
-    params.emplace("DAMemoryMapFile", "memoryMap.txt");
+    params.emplace("MemoryMapFile", "memoryMap.txt");
 
     ASSERT_THROW(
         factory.createDevice("DADevice", "deviceAccessDevice", params),
@@ -28,7 +28,7 @@ TEST(NDS_DA_Tests, TestMissingMemoryMapException) {
     nds::Factory factory("test");
     nds::namedParameters_t params;
 
-    params.emplace("DADeviceMapFile", "memoryMap.txt");
+    params.emplace("DeviceMapFile", "memoryMap.txt");
 
     ASSERT_THROW(
         factory.createDevice("DADevice", "deviceAccessDevice", params),
@@ -40,8 +40,8 @@ TEST(NDS_DA_Tests, DeviceCreationTest) {
     nds::Factory factory("test");
     nds::namedParameters_t params;
 
-    params.emplace("DADeviceAlias", "deviceAlias");
-    params.emplace("DADeviceMapFile", "memoryMap.txt");
+    params.emplace("DeviceAlias", "deviceAlias");
+    params.emplace("DeviceMapFile", "memoryMap.txt");
 
     factory.createDevice("DADevice", "deviceAccessDevice", params);
     factory.destroyDevice("deviceAccessDevice");

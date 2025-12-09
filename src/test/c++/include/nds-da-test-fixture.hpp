@@ -15,8 +15,8 @@ protected:
     nds::tests::TestControlSystemInterfaceImpl* iface;
 
     ndsDABasicDeviceFixture() : factory("test") {
-        params.emplace("DADeviceAlias", DEVICE_ALIAS);
-        params.emplace("DADeviceMapFile", DEVICE_MAPFILE);
+        params.emplace("DeviceAlias", DEVICE_ALIAS);
+        params.emplace("DeviceMapFile", DEVICE_MAPFILE);
     }
     // ~ndsDABasicDeviceFixture() override {}
 

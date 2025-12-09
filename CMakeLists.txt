@@ -85,8 +85,10 @@ target_include_directories(nds3-testcontrolsystem PRIVATE
 )
 
 # ------------------------------ NDS-DeviceAccess ------------------------------
+# Add every file under src/main/c++/nds-da
 add_library(nds-da SHARED
-    "src/main/c++/nds-da/deviceAccessMain.cpp"
+    "src/main/c++/nds-da/ndsdaMain.cpp"
+    "src/main/c++/nds-da/ndsdaFileParser.cpp"
 )
 target_include_directories(nds-da PRIVATE
     "src/main/c++/include"
