@@ -1,0 +1,4 @@
+#alias_name    device_descriptor
+test_device    (dummy?map=test-memory.mmap)
+other_test     (dummy?map=invalid-map.mmap)
+third_test     (dummy?map=invalid-map.mmap)

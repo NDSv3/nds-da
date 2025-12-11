@@ -1,0 +1,9 @@
+@MAPFILE_REVISION 0.0.0-11-g2b078ea4-test
+# path                                              nElements     address       nBytes  BAR width fixed sgnd AccMode
+.BASE                                                       4  0x00000000           16    0    32     0    0   RW
+BASE.FIRST_REG                                              1  0x00000000            4    0    32     0    0   RW
+BASE.SECOND_REG                                             1  0x00000004            4    0    32     0    0   RW
+BASE.THIRD_REG                                              1  0x00000008            4    0    32     0    0   RW
+BASE.ONE_BIT_REG                                            1  0x0000000C            4    0     1     0    0   RW
+
+.DMA_SAMPLES                                              200  0x00000000          800   13    32     0    0   RW
