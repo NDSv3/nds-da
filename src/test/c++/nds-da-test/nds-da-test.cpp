@@ -2,7 +2,6 @@
 #include <nds3/nds.h>
 #include <nds3/ndsTestFactory.h>
 #include <ctime>
-#include <stdexcept>
 #include "nds-da-test-fixture.hpp"
 
 int main(int argc, char** argv) {
