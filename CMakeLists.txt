@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.23)
 
 project(NDS-DeviceAccess)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ------------------------------ NDS-Core Library ------------------------------
@@ -84,6 +84,9 @@ target_include_directories(nds3-testcontrolsystem PRIVATE
     "m-nds-core/src/main/c++/include"
 )
 
+# ------------------------------- Device Access --------------------------------
+find_package(ChimeraTK-DeviceAccess REQUIRED)
+
 # ------------------------------ NDS-DeviceAccess ------------------------------
 # Add every file under src/main/c++/nds-da
 add_library(nds-da SHARED
@@ -93,7 +96,7 @@ add_library(nds-da SHARED
 target_include_directories(nds-da PRIVATE
     "src/main/c++/include"
 )
-target_link_libraries(nds-da PRIVATE nds3)
+target_link_libraries(nds-da PRIVATE nds3 ChimeraTK-DeviceAccess)
 target_compile_options(nds-da PRIVATE -Wall -Wextra -Wpedantic)
 set(CMAKE_CXX_CLANG_TIDY clang-tidy)
 
@@ -110,7 +113,8 @@ add_executable(nds-da-test
     "src/test/c++/nds-da-test/nds-da-test.cpp"
 )
 target_compile_options(nds-da-test PRIVATE -Wall -Wextra -Wpedantic)
-target_link_libraries(nds-da-test
+target_link_libraries(nds-da-test PRIVATE
+    ChimeraTK-DeviceAccess
     nds-da
     nds3
     nds3-testcontrolsystem
@@ -118,6 +122,9 @@ target_link_libraries(nds-da-test
 )
 target_include_directories(nds-da-test PRIVATE
     "src/test/c++/include"
+)
+set_target_properties(nds-da-test PROPERTIES
+    BUILD_RPATH "/usr/local/lib64/"
 )
 
 include(GoogleTest)
