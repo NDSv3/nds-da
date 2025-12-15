@@ -9,10 +9,10 @@ namespace ndsda {
 template <typename T>
 concept DARegisterType = ChimeraTK::user_type<T>;
 
-class Accessor {
+class DABridge {
 public:
-    Accessor(std::string dmapFilePath, std::string deviceName, std::vector<RegisterAccessor> registers);
-    ~Accessor();
+    DABridge(std::string dmapFilePath, std::string deviceName, std::vector<RegisterAccessor> registers);
+    ~DABridge();
 
     template <DARegisterType T>
     T readRegister(const std::string& readPV);

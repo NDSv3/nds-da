@@ -1,4 +1,4 @@
-#include "ndsdaAccessor.hpp"
+#include "ndsdaBridge.hpp"
 #include <ChimeraTK/OneDRegisterAccessor.h>
 #include <memory>
 #include <stdexcept>
@@ -6,10 +6,10 @@
 
 #include "nds3/exceptions.h"
 
-using ndsda::Accessor, ndsda::DARegisterType;
+using ndsda::DABridge, ndsda::DARegisterType;
 using nds::NdsError;
 
-Accessor::Accessor(std::string dmapFilePath, std::string deviceName, std::vector<RegisterAccessor> registers) {
+DABridge::DABridge(std::string dmapFilePath, std::string deviceName, std::vector<RegisterAccessor> registers) {
     ChimeraTK::setDMapFilePath(dmapFilePath);
     daDevice.open(deviceName);
 
@@ -20,12 +20,12 @@ Accessor::Accessor(std::string dmapFilePath, std::string deviceName, std::vector
     }
 }
 
-Accessor::~Accessor() {
+DABridge::~DABridge() {
     daDevice.close();
 }
 
 template <DARegisterType T>
-T Accessor::readRegister(const std::string& readPV) {
+T DABridge::readRegister(const std::string& readPV) {
     std::shared_ptr<RegisterAccessor> acc;
 
     try {
@@ -46,7 +46,7 @@ T Accessor::readRegister(const std::string& readPV) {
 }
 
 template <DARegisterType T>
-void Accessor::writeRegister(const std::string& writePV, T value) {
+void DABridge::writeRegister(const std::string& writePV, T value) {
     std::shared_ptr<RegisterAccessor> acc;
 
     try {
