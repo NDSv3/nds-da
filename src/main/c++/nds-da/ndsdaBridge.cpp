@@ -75,4 +75,60 @@ void DABridge::writeRegister(const std::string& writePV, T value) {
     }
 }
 
-// TODO: Implement the same with OneD registers
+template <DARegisterType T>
+std::vector<T> DABridge::readOneDRegister(const std::string& readPV) {
+    std::shared_ptr<OneDElement> acc;
+
+    try {
+        acc = std::dynamic_pointer_cast<OneDElement>(readPVMap.at(readPV));
+    } catch (std::out_of_range&) {
+        throw NdsError("Register with read PV " + readPV + " not found");
+    }
+
+    if (!acc) {
+        throw NdsError("Register with read PV " + readPV + " is not a OneD register");
+    }
+
+    if (!acc->daAccessor) {
+        acc->daAccessor = daDevice.getOneDRegisterAccessor<T>(acc->name);
+    }
+
+    try {
+        auto& accessor = std::get<ChimeraTK::OneDRegisterAccessor<T>>(acc->daAccessor);
+        accessor.read();
+        return std::vector<T>(accessor.begin(), accessor.end());
+    } catch (const std::bad_variant_access&) {
+        throw nds::NdsError("Register " + acc->name + " of PV " + acc->readPV + " has incompatible type");
+    }
+}
+
+template <DARegisterType T>
+void DABridge::writeOneDRegister(const std::string& writePV, const std::vector<T>& values) {
+    std::shared_ptr<OneDElement> acc;
+
+    try {
+        acc = std::dynamic_pointer_cast<OneDElement>(writePVMap.at(writePV));
+    } catch (std::out_of_range&) {
+        throw NdsError("Register with write PV " + writePV + " not found");
+    }
+
+    if (!acc) {
+        throw NdsError("Register with write PV " + writePV + " is not a OneD register");
+    }
+
+    if (values.size() != acc->elements) {
+        throw nds::NdsError("Register " + acc->name + " expects " + std::to_string(acc->elements) + " elements, but " + std::to_string(values.size()) + " were provided");
+    }
+
+    if (!acc->daAccessor) {
+        acc->daAccessor = daDevice.getOneDRegisterAccessor<T>(acc->name);
+    }
+
+    try {
+        auto& accessor = std::get<ChimeraTK::OneDRegisterAccessor<T>>(acc->daAccessor);
+        std::copy(values.begin(), values.end(), accessor.begin());
+        accessor.write();
+    } catch (const std::bad_variant_access&) {
+        throw nds::NdsError("Register " + acc->name + " of PV " + acc->writePV + " has incompatible type");
+    }
+}

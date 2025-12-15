@@ -21,6 +21,12 @@ public:
     template <DARegisterType T>
     void writeRegister(const std::string& writePV, T value);
 
+    template <DARegisterType T>
+    std::vector<T> readOneDRegister(const std::string& readPV);
+
+    template <DARegisterType T>
+    void writeOneDRegister(const std::string& writePV, const std::vector<T>& values);
+
 private:
     ChimeraTK::Device daDevice;
 
