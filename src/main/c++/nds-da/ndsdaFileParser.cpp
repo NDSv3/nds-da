@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include "nds3/exceptions.h"
+#include "ndsdaMemoryElements.hpp"
 
 using ndsda::FileParser;
 

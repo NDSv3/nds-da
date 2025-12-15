@@ -2,6 +2,7 @@
 #define NDS_DA_FILE_PARSER
 
 #include <string>
+#include "ndsdaMemoryElements.hpp"
 
 namespace ndsda {
 

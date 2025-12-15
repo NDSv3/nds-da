@@ -2,7 +2,8 @@
 #define NDSDA_ACCESSOR_H
 
 #include <ChimeraTK/Device.h>
-#include "ndsdaRegisterAccessor.hpp"
+#include <memory>
+#include "ndsdaMemoryElements.hpp"
 
 namespace ndsda {
 
@@ -11,7 +12,7 @@ concept DARegisterType = ChimeraTK::user_type<T>;
 
 class DABridge {
 public:
-    DABridge(std::string dmapFilePath, std::string deviceName, std::vector<RegisterAccessor> registers);
+    DABridge(std::string dmapFilePath, std::string deviceName, std::vector<std::shared_ptr<MemoryElement>> elements);
     ~DABridge();
 
     template <DARegisterType T>
@@ -23,7 +24,7 @@ public:
 private:
     ChimeraTK::Device daDevice;
 
-    std::map<std::string, std::shared_ptr<RegisterAccessor>> regReadMap, regWriteMap;
+    std::map<std::string, std::shared_ptr<MemoryElement>> readPVMap, writePVMap;
 };
 
 }  // namespace ndsda

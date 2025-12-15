@@ -9,14 +9,13 @@
 using ndsda::DABridge, ndsda::DARegisterType;
 using nds::NdsError;
 
-DABridge::DABridge(std::string dmapFilePath, std::string deviceName, std::vector<RegisterAccessor> registers) {
+DABridge::DABridge(std::string dmapFilePath, std::string deviceName, std::vector<std::shared_ptr<MemoryElement>> elements) {
     ChimeraTK::setDMapFilePath(dmapFilePath);
     daDevice.open(deviceName);
 
-    for (RegisterAccessor& ra : registers) {
-        auto ptr = std::make_shared<RegisterAccessor>(ra);
-        regReadMap.emplace(ra.readPV, ptr);
-        regWriteMap.emplace(ra.writePV, ptr);
+    for (std::shared_ptr<MemoryElement>& ptr : elements) {
+        readPVMap.emplace(ptr->readPV, ptr);
+        writePVMap.emplace(ptr->writePV, ptr);
     }
 }
 
@@ -26,44 +25,54 @@ DABridge::~DABridge() {
 
 template <DARegisterType T>
 T DABridge::readRegister(const std::string& readPV) {
-    std::shared_ptr<RegisterAccessor> acc;
+    std::shared_ptr<RegisterElement> acc;
 
     try {
-        acc = regReadMap[readPV];
+        acc = std::dynamic_pointer_cast<RegisterElement>(readPVMap.at(readPV));
     } catch (std::out_of_range&) {
         throw NdsError("Register with read PV " + readPV + " not found");
     }
 
-    if (!acc->daRegAccVariant) {
-        acc->daRegAccVariant = daDevice.getScalarRegisterAccessor<T>(acc->registerName);
+    if (!acc) {
+        throw NdsError("Register with read PV " + readPV + " is not a scalar register");
+    }
+
+    if (!acc->daAccessor) {
+        acc->daAccessor = daDevice.getScalarRegisterAccessor<T>(acc->name);
     }
 
     try {
-        return std::get<ChimeraTK::OneDRegisterAccessor<T>>(acc->daRegAccVariant).read();
-    } catch (std::bad_variant_access) {
-        throw nds::NdsError("Register " + acc->registerName + " of PV " + acc->readPV + " has incompatible type");
+        return std::get<ChimeraTK::ScalarRegisterAccessor<T>>(acc->daAccessor).read();
+    } catch (const std::bad_variant_access&) {
+        throw nds::NdsError("Register " + acc->name + " of PV " + acc->readPV + " has incompatible type");
     }
 }
 
 template <DARegisterType T>
 void DABridge::writeRegister(const std::string& writePV, T value) {
-    std::shared_ptr<RegisterAccessor> acc;
+    std::shared_ptr<RegisterElement> acc;
 
     try {
-        acc = regReadMap[writePV];
+        acc = std::dynamic_pointer_cast<RegisterElement>(writePVMap.at(writePV));
     } catch (std::out_of_range&) {
         throw NdsError("Register with write PV " + writePV + " not found");
     }
 
-    if (!acc->daRegAccVariant) {
-        acc->daRegAccVariant = daDevice.getScalarRegisterAccessor<T>(acc->registerName);
+    if (!acc) {
+        throw NdsError("Register with write PV " + writePV + " is not a scalar register");
+    }
+
+    if (!acc->daAccessor) {
+        acc->daAccessor = daDevice.getScalarRegisterAccessor<T>(acc->name);
     }
 
     try {
-        auto& accessor = std::get<ChimeraTK::OneDRegisterAccessor<T>>(acc->daRegAccVariant);
+        auto& accessor = std::get<ChimeraTK::ScalarRegisterAccessor<T>>(acc->daAccessor);
         accessor       = value;
         accessor.write();
-    } catch (std::bad_variant_access) {
-        throw nds::NdsError("Register " + acc->registerName + " of PV " + acc->writePV + " has incompatible type");
+    } catch (const std::bad_variant_access&) {
+        throw nds::NdsError("Register " + acc->name + " of PV " + acc->writePV + " has incompatible type");
     }
 }
+
+// TODO: Implement the same with OneD registers
