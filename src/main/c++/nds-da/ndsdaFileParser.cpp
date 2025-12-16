@@ -56,7 +56,7 @@ const std::string FileParser::getMemoryMapFile() const {
     return this->memoryMapFile;
 }
 
-std::vector<std::shared_ptr<ndsda::MemoryElement>> FileParser::getElements() const {
+const std::vector<std::shared_ptr<ndsda::MemoryElement>> FileParser::getElements() const {
     return this->elements;
 }
 

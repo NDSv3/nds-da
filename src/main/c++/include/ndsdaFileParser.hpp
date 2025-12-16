@@ -14,7 +14,7 @@ public:
     ~FileParser();
 
     const std::string getMemoryMapFile() const;
-    std::vector<std::shared_ptr<MemoryElement>> getElements() const;
+    const std::vector<std::shared_ptr<MemoryElement>> getElements() const;
 
 private:
     std::filesystem::path deviceMapFile, memoryMapFile;
