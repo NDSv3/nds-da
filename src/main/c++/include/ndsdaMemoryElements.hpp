@@ -18,14 +18,15 @@ enum class MemoryElementType {
 
 // TODO: Extract PV name generation logic to allow parsing
 struct MemoryElement {
+    std::string name, readPV, writePV;
+
     MemoryElement(const std::string& name)
         : name(name), readPV(name + DAPV_GET_SUFFIX), writePV(name + DAPV_SET_SUFFIX) {};
 
     virtual MemoryElementType getType() const = 0;
+    virtual ~MemoryElement()                  = default;
 
-    virtual ~MemoryElement() = default;
-
-    std::string name, readPV, writePV;
+    virtual bool operator==(const MemoryElement& other) const = 0;
 };
 
 using DARegAccessorVariant = std::variant<
@@ -35,12 +36,20 @@ using DARegAccessorVariant = std::variant<
 
 struct RegisterElement : MemoryElement {
 public:
+    std::optional<DARegAccessorVariant> daAccessor;
+
     RegisterElement(const std::string& name)
         : MemoryElement(name), daAccessor(std::nullopt) {};
 
     MemoryElementType getType() const override { return MemoryElementType::SCALAR; }
 
-    std::optional<DARegAccessorVariant> daAccessor;
+    bool operator==(const MemoryElement& other) const override {
+        if (other.getType() != MemoryElementType::SCALAR) {
+            return false;
+        }
+        const RegisterElement& otherReg = static_cast<const RegisterElement&>(other);
+        return (this->name == otherReg.name) && (this->readPV == otherReg.readPV) && (this->writePV == otherReg.writePV);
+    }
 };
 
 using DAOneDRegAccessorVariant = std::variant<
@@ -48,6 +57,9 @@ using DAOneDRegAccessorVariant = std::variant<
     ChimeraTK::OneDRegisterAccessor<int32_t>,
     ChimeraTK::OneDRegisterAccessor<float> >;
 struct OneDElement : MemoryElement {
+    size_t elements, elementSize;
+    std::optional<DAOneDRegAccessorVariant> daAccessor;
+
     OneDElement(const std::string& name, size_t elements, size_t elementSize)
         : MemoryElement(name),
           elements(elements),
@@ -56,8 +68,17 @@ struct OneDElement : MemoryElement {
 
     MemoryElementType getType() const override { return MemoryElementType::ONE_D; }
 
-    size_t elements, elementSize;
-    std::optional<DAOneDRegAccessorVariant> daAccessor;
+    bool operator==(const MemoryElement& other) const override {
+        if (other.getType() != MemoryElementType::ONE_D) {
+            return false;
+        }
+        const OneDElement& otherOneD = static_cast<const OneDElement&>(other);
+        return (this->name == otherOneD.name) &&
+               (this->readPV == otherOneD.readPV) &&
+               (this->writePV == otherOneD.writePV) &&
+               (this->elements == otherOneD.elements) &&
+               (this->elementSize == otherOneD.elementSize);
+    }
 };
 
 }  // namespace ndsda
