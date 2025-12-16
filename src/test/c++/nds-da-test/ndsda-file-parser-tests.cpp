@@ -2,6 +2,7 @@
 #include <nds3/nds.h>
 #include <nds3/ndsTestFactory.h>
 #include <ctime>
+#include <memory>
 #include "nds-da-test-fixture.hpp"
 
 TEST(FileParser, wrongFilePath_exception) {
@@ -25,6 +26,44 @@ TEST(FileParser, missingDeviceAlias_exception) {
     EXPECT_THROW({ ndsda::FileParser parser(deviceMapFile, wrongDeviceAlias); }, std::runtime_error);
 }
 
-TEST_F(ndsDAFileParserFixture, TestTest) {
+TEST_F(ndsDAFileParserFixture, getMemoryMapFile) {
     ASSERT_EQ(parser->getMemoryMapFile(), ndsDAFileParserFixture::MEMORY_MAPFILE);
+}
+
+static const std::string elementToString(const ndsda::MemoryElement& element) {
+    std::string repr = "Element Name: " + element.name + "\n";
+    repr += "  Read PV: " + element.readPV + "\n";
+    repr += "  Write PV: " + element.writePV + "\n";
+
+    if (element.getType() == ndsda::MemoryElementType::SCALAR) {
+        repr += "  Type: Scalar Register";
+    } else if (element.getType() == ndsda::MemoryElementType::ONE_D) {
+        const ndsda::OneDElement& oneDElement = static_cast<const ndsda::OneDElement&>(element);
+        repr += "  Type: One-D Register\n";
+        repr += "  Elements: " + std::to_string(oneDElement.elements) + "\n";
+        repr += "  Element Size: " + std::to_string(oneDElement.elementSize) + " bytes";
+    }
+
+    return repr;
+}
+TEST_F(ndsDAFileParserFixture, elementParsing) {
+    auto vec = parser->getElements();
+
+    std::vector<std::shared_ptr<ndsda::MemoryElement>> expectedElements = {
+        std::make_shared<ndsda::OneDElement>(".BASE", 4, 32),
+        std::make_shared<ndsda::RegisterElement>("BASE.FIRST_REG"),
+        std::make_shared<ndsda::RegisterElement>("BASE.SECOND_REG"),
+        std::make_shared<ndsda::RegisterElement>("BASE.THIRD_REG"),
+        std::make_shared<ndsda::RegisterElement>("BASE.ONE_BIT_REG"),
+        std::make_shared<ndsda::OneDElement>(".DMA_SAMPLES", 200, 32)
+    };
+
+    for (size_t i = 0; i < expectedElements.size(); ++i) {
+        ASSERT_EQ(*vec[i], *expectedElements[i])
+            << "Parsed element does not match expected element:\n"
+            << "Parsed: "
+            << elementToString(*vec[i]) << "\n"
+            << "Expected: "
+            << elementToString(*expectedElements[i]) << "\n";
+    }
 }
