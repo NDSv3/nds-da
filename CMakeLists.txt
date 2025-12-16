@@ -110,7 +110,9 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 add_executable(nds-da-test
+    "src/test/c++/nds-da-test/ndada-device-tests.cpp"
     "src/test/c++/nds-da-test/nds-da-test.cpp"
+    "src/test/c++/nds-da-test/ndsda-file-parser-tests.cpp"
 )
 target_compile_options(nds-da-test PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(nds-da-test PRIVATE
