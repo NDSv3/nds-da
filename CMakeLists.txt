@@ -94,7 +94,7 @@ add_library(nds-da SHARED
     "src/main/c++/nds-da/ndsdaFileParser.cpp"
     "src/main/c++/nds-da/ndsdaBridge.cpp"
 )
-target_include_directories(nds-da PRIVATE
+target_include_directories(nds-da PUBLIC
     "src/main/c++/include"
 )
 target_link_libraries(nds-da PRIVATE nds3 ChimeraTK-DeviceAccess)

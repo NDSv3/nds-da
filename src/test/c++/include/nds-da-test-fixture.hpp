@@ -5,6 +5,7 @@
 #include <string>
 #include "nds3/factory.h"
 #include "nds3/ndsTestInterface.h"
+#include "ndsdaFileParser.hpp"
 
 #define NDSDA_TEST_DEVICEALIAS "test_device"
 #define NDSDA_TEST_DEVICE_MAPFILE "../src/test/test-devices.dmap"
@@ -34,6 +35,24 @@ protected:
     void TearDown() override {
         factory.destroyDevice("deviceAccessDevice");
     }
+};
+
+class ndsDAFileParserFixture : public testing::Test {
+protected:
+    const std::string DEVICE_ALIAS   = NDSDA_TEST_DEVICEALIAS;
+    const std::string DEVICE_MAPFILE = NDSDA_TEST_DEVICE_MAPFILE;
+    const std::string MEMORY_MAPFILE = NDSDA_TEST_MEMORY_MAPFILE;
+
+    std::unique_ptr<ndsda::FileParser> parser;
+
+    ndsDAFileParserFixture() {}
+    // ~ndsDAFileParserFixture() override {}
+
+    void SetUp() override {
+        parser = std::make_unique<ndsda::FileParser>(DEVICE_MAPFILE, DEVICE_ALIAS);
+    }
+
+    void TearDown() override {}
 };
 
 #endif  //! NDS_DA_TEST_FIXTURE
