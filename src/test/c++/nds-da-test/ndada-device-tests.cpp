@@ -71,5 +71,5 @@ TEST_F(ndsDABasicDeviceFixture, GetMemoryMapFile) {
 
     iface->readCSValue("/deviceAccessDevice-memoryMapFile", &tmp_time, &tmp_string);
     EXPECT_NE(tmp_time.tv_sec, 0);
-    EXPECT_EQ(tmp_string, MEMORY_MAPFILE.substr(MEMORY_MAPFILE.find_last_of('/') + 1));
+    EXPECT_EQ(tmp_string, MEMORY_MAPFILE);
 }

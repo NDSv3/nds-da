@@ -13,17 +13,22 @@ FileParser::FileParser(std::string deviceMapFile, std::string deviceMapAlias)
     : deviceMapFile(deviceMapFile),
       deviceMapAlias(deviceMapAlias) {
 
+    if (!std::filesystem::exists(this->deviceMapFile)) {
+        throw nds::NdsError("Device map file does not exist: " + deviceMapFile);
+    }
+
+    std::string memoryMapFile_str;
     {  // Scope for deviceMap RAII
         std::ifstream deviceMap(this->deviceMapFile);
 
         if (!deviceMap.is_open()) {
-            throw std::runtime_error("Could not open device map file: " + this->deviceMapFile);
+            throw nds::NdsError("Could not open device map file: " + deviceMapFile);
         }
 
         for (std::string line; std::getline(deviceMap, line);) {
-            if (line.rfind(this->deviceMapAlias, 0) == 0) {
-                int mapLocation = line.rfind("map=") + 4;
-                memoryMapFile   = line.substr(
+            if (line.rfind(deviceMapAlias, 0) == 0) {
+                int mapLocation   = line.rfind("map=") + 4;
+                memoryMapFile_str = line.substr(
                     line.rfind("map=") + 4,
                     line.find_first_of("&)", mapLocation) - mapLocation
                 );
@@ -32,8 +37,14 @@ FileParser::FileParser(std::string deviceMapFile, std::string deviceMapAlias)
         }
     }
 
-    if (memoryMapFile.empty()) {
+    if (memoryMapFile_str.empty()) {
         throw nds::NdsError("Could not find memory map for alias: " + this->deviceMapAlias);
+    }
+
+    this->memoryMapFile = this->deviceMapFile.remove_filename() / std::filesystem::path(memoryMapFile_str);
+
+    if (!std::filesystem::exists(this->memoryMapFile)) {
+        throw nds::NdsError("Memory map file does not exist: " + this->memoryMapFile.string());
     }
 
     this->elements = parseRegisters(this->memoryMapFile);
@@ -41,7 +52,7 @@ FileParser::FileParser(std::string deviceMapFile, std::string deviceMapAlias)
 
 FileParser::~FileParser() {}
 
-const std::string& FileParser::getMemoryMapFile() const {
+const std::string FileParser::getMemoryMapFile() const {
     return this->memoryMapFile;
 }
 

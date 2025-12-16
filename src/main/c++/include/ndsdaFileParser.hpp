@@ -1,6 +1,7 @@
 #ifndef NDS_DA_FILE_PARSER
 #define NDS_DA_FILE_PARSER
 
+#include <filesystem>
 #include <memory>
 #include <string>
 #include "ndsdaMemoryElements.hpp"
@@ -12,11 +13,12 @@ public:
     FileParser(std::string deviceMapFile, std::string deviceMapAlias);
     ~FileParser();
 
-    const std::string& getMemoryMapFile() const;
+    const std::string getMemoryMapFile() const;
     std::vector<std::shared_ptr<MemoryElement>> getElements() const;
 
 private:
-    std::string deviceMapFile, deviceMapAlias, memoryMapFile;
+    std::filesystem::path deviceMapFile, memoryMapFile;
+    std::string deviceMapAlias;
     std::vector<std::shared_ptr<MemoryElement>> elements;
 };
 
