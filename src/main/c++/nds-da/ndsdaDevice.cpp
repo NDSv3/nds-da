@@ -1,6 +1,5 @@
-#include "ndsdaMain.hpp"
+#include "ndsdaDevice.hpp"
 #include <ctime>
-#include <memory>
 #include "nds3/definitions.h"
 #include "nds3/exceptions.h"
 
