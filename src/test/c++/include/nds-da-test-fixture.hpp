@@ -5,6 +5,7 @@
 #include <string>
 #include "nds3/factory.h"
 #include "nds3/ndsTestInterface.h"
+#include "ndsdaBridge.hpp"
 #include "ndsdaFileParser.hpp"
 
 #define NDSDA_TEST_DEVICEALIAS "test_device"
@@ -45,9 +46,6 @@ protected:
 
     std::unique_ptr<ndsda::FileParser> parser;
 
-    ndsDAFileParserFixture() {}
-    // ~ndsDAFileParserFixture() override {}
-
     void SetUp() override {
         parser = std::make_unique<ndsda::FileParser>(DEVICE_MAPFILE, DEVICE_ALIAS);
     }
@@ -55,4 +53,32 @@ protected:
     void TearDown() override {}
 };
 
+class ndsDABridgeFixture : public testing::Test {
+protected:
+    const std::string DEVICE_ALIAS   = NDSDA_TEST_DEVICEALIAS;
+    const std::string DEVICE_MAPFILE = NDSDA_TEST_DEVICE_MAPFILE;
+    const std::string MEMORY_MAPFILE = NDSDA_TEST_MEMORY_MAPFILE;
+
+    const std::string DAPV_REGISTER_PV = "BASE.FIRST_REG";
+    const std::string DAPV_ONED_PV     = ".DMA_SAMPLES";
+    const size_t DAPV_ONED_ELEMENTS    = 200;
+
+    std::unique_ptr<ndsda::DABridge> bridge;
+
+    void SetUp() override {
+        // WARNING: MUST match the content of MEMORY_MAPFILE with DEVICE_ALIAS
+        std::vector<std::shared_ptr<ndsda::MemoryElement>> expectedElements = {
+            std::make_shared<ndsda::OneDElement>(".BASE", 4, 32),
+            std::make_shared<ndsda::RegisterElement>("BASE.FIRST_REG"),
+            std::make_shared<ndsda::RegisterElement>("BASE.SECOND_REG"),
+            std::make_shared<ndsda::RegisterElement>("BASE.THIRD_REG"),
+            std::make_shared<ndsda::RegisterElement>("BASE.ONE_BIT_REG"),
+            std::make_shared<ndsda::OneDElement>(".DMA_SAMPLES", 200, 32)
+        };
+
+        bridge = std::make_unique<ndsda::DABridge>(DEVICE_MAPFILE, DEVICE_ALIAS, expectedElements);
+    }
+
+    void TearDown() override {}
+};
 #endif  //! NDS_DA_TEST_FIXTURE
