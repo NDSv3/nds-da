@@ -1,4 +1,5 @@
 #include "ndsdaBridge.hpp"
+#include <ChimeraTK/Exception.h>
 #include <ChimeraTK/OneDRegisterAccessor.h>
 #include <memory>
 #include <stdexcept>
@@ -10,10 +11,18 @@ using ndsda::DABridge, ndsda::DARegisterType;
 using nds::NdsError;
 
 DABridge::DABridge(std::string dmapFilePath, std::string deviceName, std::vector<std::shared_ptr<MemoryElement>> elements) {
-    ChimeraTK::setDMapFilePath(dmapFilePath);
-    daDevice.open(deviceName);
+
+    try {
+        ChimeraTK::setDMapFilePath(dmapFilePath);
+        daDevice.open(deviceName);
+    } catch (const ChimeraTK::logic_error& e) {
+        throw NdsError("Failed to initialize DeviceAccess: " + std::string(e.what()));
+    }
 
     for (std::shared_ptr<MemoryElement>& ptr : elements) {
+        if (!ptr) {
+            throw NdsError("Null MemoryElement provided to DABridge");
+        }
         readPVMap.emplace(ptr->readPV, ptr);
         writePVMap.emplace(ptr->writePV, ptr);
     }
@@ -38,11 +47,13 @@ T DABridge::readRegister(const std::string& readPV) {
     }
 
     if (!acc->daAccessor) {
-        acc->daAccessor = daDevice.getScalarRegisterAccessor<T>(acc->name);
+        acc->daAccessor.emplace(daDevice.getScalarRegisterAccessor<T>(acc->name));
     }
 
     try {
-        return std::get<ChimeraTK::ScalarRegisterAccessor<T>>(acc->daAccessor).read();
+        auto& accessor = std::get<ChimeraTK::ScalarRegisterAccessor<T>>(acc->daAccessor.value());
+        accessor.read();
+        return accessor;
     } catch (const std::bad_variant_access&) {
         throw nds::NdsError("Register " + acc->name + " of PV " + acc->readPV + " has incompatible type");
     }
@@ -63,11 +74,11 @@ void DABridge::writeRegister(const std::string& writePV, T value) {
     }
 
     if (!acc->daAccessor) {
-        acc->daAccessor = daDevice.getScalarRegisterAccessor<T>(acc->name);
+        acc->daAccessor.emplace(daDevice.getScalarRegisterAccessor<T>(acc->name));
     }
 
     try {
-        auto& accessor = std::get<ChimeraTK::ScalarRegisterAccessor<T>>(acc->daAccessor);
+        auto& accessor = std::get<ChimeraTK::ScalarRegisterAccessor<T>>(acc->daAccessor.value());
         accessor       = value;
         accessor.write();
     } catch (const std::bad_variant_access&) {
@@ -90,11 +101,11 @@ std::vector<T> DABridge::readOneDRegister(const std::string& readPV) {
     }
 
     if (!acc->daAccessor) {
-        acc->daAccessor = daDevice.getOneDRegisterAccessor<T>(acc->name);
+        acc->daAccessor.emplace(daDevice.getOneDRegisterAccessor<T>(acc->name));
     }
 
     try {
-        auto& accessor = std::get<ChimeraTK::OneDRegisterAccessor<T>>(acc->daAccessor);
+        auto& accessor = std::get<ChimeraTK::OneDRegisterAccessor<T>>(acc->daAccessor.value());
         accessor.read();
         return std::vector<T>(accessor.begin(), accessor.end());
     } catch (const std::bad_variant_access&) {
@@ -121,14 +132,30 @@ void DABridge::writeOneDRegister(const std::string& writePV, const std::vector<T
     }
 
     if (!acc->daAccessor) {
-        acc->daAccessor = daDevice.getOneDRegisterAccessor<T>(acc->name);
+        acc->daAccessor.emplace(daDevice.getOneDRegisterAccessor<T>(acc->name));
     }
 
     try {
-        auto& accessor = std::get<ChimeraTK::OneDRegisterAccessor<T>>(acc->daAccessor);
+        auto& accessor = std::get<ChimeraTK::OneDRegisterAccessor<T>>(acc->daAccessor.value());
         std::copy(values.begin(), values.end(), accessor.begin());
         accessor.write();
     } catch (const std::bad_variant_access&) {
         throw nds::NdsError("Register " + acc->name + " of PV " + acc->writePV + " has incompatible type");
     }
 }
+
+// Explicit template instantiations
+template int32_t DABridge::readRegister(const std::string& readPV);
+template void DABridge::writeRegister(const std::string& writePV, int32_t value);
+template std::vector<int32_t> DABridge::readOneDRegister(const std::string& readPV);
+template void DABridge::writeOneDRegister(const std::string& writePV, const std::vector<int32_t>& values);
+
+template uint32_t DABridge::readRegister(const std::string& readPV);
+template void DABridge::writeRegister(const std::string& writePV, uint32_t value);
+template std::vector<uint32_t> DABridge::readOneDRegister(const std::string& readPV);
+template void DABridge::writeOneDRegister(const std::string& writePV, const std::vector<uint32_t>& values);
+
+template float DABridge::readRegister(const std::string& readPV);
+template void DABridge::writeRegister(const std::string& writePV, float value);
+template std::vector<float> DABridge::readOneDRegister(const std::string& readPV);
+template void DABridge::writeOneDRegister(const std::string& writePV, const std::vector<float>& values);
