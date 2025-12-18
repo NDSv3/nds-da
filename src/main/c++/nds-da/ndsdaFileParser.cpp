@@ -68,21 +68,23 @@ static std::vector<std::shared_ptr<ndsda::MemoryElement>> parseRegisters(const s
         throw std::runtime_error("Could not open memory map file: " + memoryMapFile);
     }
 
-    std::string path, address, BAR /*, fixed, sgnd, AccMode */;
-    size_t nElements, nBytes, width;
+    std::string path, address, BAR, AccMode;
+    size_t nElements, nBytes, width, fixed, sgnd;
     for (std::string line; std::getline(memMap, line);) {
         if (line.empty() || line[0] == '#' || line[0] == '@')
             continue;
 
         std::istringstream iss(line);
-        if (!(iss >> path >> nElements >> address >> nBytes >> BAR >> width /* >> fixed >> sgnd >> AccMode*/)) {
+        if (!(iss >> path >> nElements >> address >> nBytes >> BAR >> width >> fixed >> sgnd >> AccMode)) {
             continue;  // TODO: Handle Malformed line
         }
 
         if (nElements == 1) {
-            registers.push_back(std::make_shared<ndsda::RegisterElement>(path));
+            registers.push_back(std::make_shared<ndsda::RegisterElement>(path, fixed, bool(sgnd)));
         } else {
-            registers.push_back(std::make_shared<ndsda::OneDElement>(path, nElements, width));
+            registers.push_back(
+                std::make_shared<ndsda::OneDElement>(path, nElements, width, fixed, bool(sgnd))
+            );
         }
     }
 

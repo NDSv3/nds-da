@@ -7,7 +7,7 @@
 
 #include "nds3/exceptions.h"
 
-using ndsda::DABridge, ndsda::DARegisterType;
+using ndsda::DABridge, ndsda::Integer32;
 using nds::NdsError;
 
 DABridge::DABridge(std::string dmapFilePath, std::string deviceName, std::vector<std::shared_ptr<MemoryElement>> elements) {
@@ -32,7 +32,7 @@ DABridge::~DABridge() {
     daDevice.close();
 }
 
-template <DARegisterType T>
+template <Integer32 T>
 T DABridge::readRegister(const std::string& readPV) {
     std::shared_ptr<RegisterElement> acc;
 
@@ -47,6 +47,16 @@ T DABridge::readRegister(const std::string& readPV) {
     }
 
     if (!acc->daAccessor) {
+        if constexpr (std::is_same_v<T, uint32_t>) {
+            if (acc->isSigned) {
+                throw nds::NdsError("Tried to read signed scalar " + acc->name + " as unsigned");
+            }
+        } else {
+            if (!acc->isSigned) {
+                throw nds::NdsError("Tried to read unsigned scalar " + acc->name + " as signed");
+            }
+        }
+
         acc->daAccessor.emplace(daDevice.getScalarRegisterAccessor<T>(acc->name));
     }
 
@@ -59,7 +69,7 @@ T DABridge::readRegister(const std::string& readPV) {
     }
 }
 
-template <DARegisterType T>
+template <Integer32 T>
 void DABridge::writeRegister(const std::string& writePV, T value) {
     std::shared_ptr<RegisterElement> acc;
 
@@ -74,6 +84,16 @@ void DABridge::writeRegister(const std::string& writePV, T value) {
     }
 
     if (!acc->daAccessor) {
+        if constexpr (std::is_same_v<T, uint32_t>) {
+            if (acc->isSigned) {
+                throw nds::NdsError("Tried to write signed scalar " + acc->name + " as unsigned");
+            }
+        } else {
+            if (!acc->isSigned) {
+                throw nds::NdsError("Tried to write unsigned scalar " + acc->name + " as signed");
+            }
+        }
+
         acc->daAccessor.emplace(daDevice.getScalarRegisterAccessor<T>(acc->name));
     }
 
@@ -86,7 +106,7 @@ void DABridge::writeRegister(const std::string& writePV, T value) {
     }
 }
 
-template <DARegisterType T>
+template <Integer32 T>
 std::vector<T> DABridge::readOneDRegister(const std::string& readPV) {
     std::shared_ptr<OneDElement> acc;
 
@@ -101,6 +121,16 @@ std::vector<T> DABridge::readOneDRegister(const std::string& readPV) {
     }
 
     if (!acc->daAccessor) {
+        if constexpr (std::is_same_v<T, uint32_t>) {
+            if (acc->isSigned) {
+                throw nds::NdsError("Tried to read signed register " + acc->name + " as unsigned");
+            }
+        } else {
+            if (!acc->isSigned) {
+                throw nds::NdsError("Tried to read unsigned register " + acc->name + " as signed");
+            }
+        }
+
         acc->daAccessor.emplace(daDevice.getOneDRegisterAccessor<T>(acc->name));
     }
 
@@ -113,7 +143,7 @@ std::vector<T> DABridge::readOneDRegister(const std::string& readPV) {
     }
 }
 
-template <DARegisterType T>
+template <Integer32 T>
 void DABridge::writeOneDRegister(const std::string& writePV, const std::vector<T>& values) {
     std::shared_ptr<OneDElement> acc;
 
@@ -132,6 +162,15 @@ void DABridge::writeOneDRegister(const std::string& writePV, const std::vector<T
     }
 
     if (!acc->daAccessor) {
+        if constexpr (std::is_same_v<T, uint32_t>) {
+            if (acc->isSigned) {
+                throw nds::NdsError("Tried to write signed register " + acc->name + " as unsigned");
+            }
+        } else {
+            if (!acc->isSigned) {
+                throw nds::NdsError("Tried to write unsigned register " + acc->name + " as signed");
+            }
+        }
         acc->daAccessor.emplace(daDevice.getOneDRegisterAccessor<T>(acc->name));
     }
 
@@ -154,8 +193,3 @@ template uint32_t DABridge::readRegister(const std::string& readPV);
 template void DABridge::writeRegister(const std::string& writePV, uint32_t value);
 template std::vector<uint32_t> DABridge::readOneDRegister(const std::string& readPV);
 template void DABridge::writeOneDRegister(const std::string& writePV, const std::vector<uint32_t>& values);
-
-template float DABridge::readRegister(const std::string& readPV);
-template void DABridge::writeRegister(const std::string& writePV, float value);
-template std::vector<float> DABridge::readOneDRegister(const std::string& readPV);
-template void DABridge::writeOneDRegister(const std::string& writePV, const std::vector<float>& values);

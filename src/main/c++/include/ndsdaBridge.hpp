@@ -8,23 +8,23 @@
 namespace ndsda {
 
 template <typename T>
-concept DARegisterType = ChimeraTK::user_type<T>;
+concept Integer32 = std::same_as<T, uint32_t> || std::same_as<T, int32_t>;
 
 class DABridge {
 public:
     DABridge(std::string dmapFilePath, std::string deviceName, std::vector<std::shared_ptr<MemoryElement>> elements);
     ~DABridge();
 
-    template <DARegisterType T>
+    template <Integer32 T>
     T readRegister(const std::string& readPV);
 
-    template <DARegisterType T>
+    template <Integer32 T>
     void writeRegister(const std::string& writePV, T value);
 
-    template <DARegisterType T>
+    template <Integer32 T>
     std::vector<T> readOneDRegister(const std::string& readPV);
 
-    template <DARegisterType T>
+    template <Integer32 T>
     void writeOneDRegister(const std::string& writePV, const std::vector<T>& values);
 
 private:
