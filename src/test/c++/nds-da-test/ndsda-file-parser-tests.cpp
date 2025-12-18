@@ -49,15 +49,6 @@ static const std::string elementToString(const ndsda::MemoryElement& element) {
 TEST_F(ndsDAFileParserFixture, elementParsing) {
     auto vec = parser->getElements();
 
-    std::vector<std::shared_ptr<ndsda::MemoryElement>> expectedElements = {
-        std::make_shared<ndsda::OneDElement>(".BASE", 4, 32),
-        std::make_shared<ndsda::RegisterElement>("BASE.FIRST_REG"),
-        std::make_shared<ndsda::RegisterElement>("BASE.SECOND_REG"),
-        std::make_shared<ndsda::RegisterElement>("BASE.THIRD_REG"),
-        std::make_shared<ndsda::RegisterElement>("BASE.ONE_BIT_REG"),
-        std::make_shared<ndsda::OneDElement>(".DMA_SAMPLES", 200, 32)
-    };
-
     for (size_t i = 0; i < expectedElements.size(); ++i) {
         ASSERT_EQ(*vec[i], *expectedElements[i])
             << "Parsed element does not match expected element:\n"
