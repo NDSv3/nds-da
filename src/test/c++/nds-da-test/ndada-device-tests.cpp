@@ -95,3 +95,16 @@ TEST_F(ndsDABasicDeviceFixture, WriteReadPVUInt32) {
 
     EXPECT_EQ(write_value, std::bit_cast<int32_t>(read_value));
 }
+
+TEST_F(ndsDABasicDeviceFixture, WriteReadOneDUInt32) {
+    std::vector<uint32_t> write_values(NDSDA_TEST_ONEDELEMENTS), read_values(NDSDA_TEST_ONEDELEMENTS);
+    timespec tmp_time;
+
+    for (size_t i = 0; i < write_values.size(); ++i) write_values[i] = std::rand() % INT32_MAX;
+
+    iface->writeCSValue("/deviceAccessDevice-" + NDSDA_TEST_ONEDPV + "-Set", tmp_time, write_values);
+    iface->readCSValue("/deviceAccessDevice-" + NDSDA_TEST_ONEDPV + "-Get", &tmp_time, &read_values);
+    EXPECT_EQ(write_values.size(), read_values.size());
+    for (size_t i = 0; i < write_values.size(); ++i)
+        EXPECT_EQ(write_values[i], read_values[i]);
+}
