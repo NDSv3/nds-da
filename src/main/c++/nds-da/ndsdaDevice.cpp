@@ -92,7 +92,7 @@ template <>
 void Device::addScalarPV<uint32_t>(const std::shared_ptr<ndsda::MemoryElement>& e) {
     const auto readLambda = [this, e](timespec* ts, int32_t* value) {
         clock_gettime(CLOCK_REALTIME, ts);
-        *value = std::bit_cast<uint32_t>(this->daBridge->readRegister<int32_t>(e->readPV));
+        *value = std::bit_cast<int32_t>(this->daBridge->readRegister<uint32_t>(e->readPV));
     };
     const auto writeLambda = [this, e](const timespec& ts, const int32_t& value) {
         (void)ts;  // TODO: Research why ts is unused
