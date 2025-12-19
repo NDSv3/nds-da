@@ -13,17 +13,17 @@ const std::string NDSDA_TEST_DMAPFILE    = "../src/test/test-devices.dmap";
 const std::string NDSDA_TEST_MMAPFILE    = "../src/test/test-memory.mmap";
 const std::string NDSDA_TEST_REGISTERPV  = "BASE.FIRST_REG";
 const std::string NDSDA_TEST_SIGNEDREGPV = "BASE.SECOND_REG";
-const std::string NDSDA_TEST_ONEDPV      = ".DMA_SAMPLES";
+const std::string NDSDA_TEST_ONEDPV      = "DMA_SAMPLES";
 const size_t NDSDA_TEST_ONEDELEMENTS     = 200;
 
 // WARNING: MUST match the content of MEMORY_MAPFILE with DEVICE_ALIAS
 static const std::vector<std::shared_ptr<ndsda::MemoryElement>> expectedElements = {
-    std::make_shared<ndsda::OneDElement>(".BASE", 4, 32, 0, 0),
+    std::make_shared<ndsda::OneDElement>("BASE", 4, 32, 0, 0),
     std::make_shared<ndsda::RegisterElement>("BASE.FIRST_REG", 0, 0),
     std::make_shared<ndsda::RegisterElement>("BASE.SECOND_REG", 0, 1),
     std::make_shared<ndsda::RegisterElement>("BASE.THIRD_REG", 0, 0),
     std::make_shared<ndsda::RegisterElement>("BASE.ONE_BIT_REG", 0, 0),
-    std::make_shared<ndsda::OneDElement>(".DMA_SAMPLES", 200, 32, 0, 0)
+    std::make_shared<ndsda::OneDElement>("DMA_SAMPLES", 200, 32, 0, 0)
 };
 
 class ndsDABasicDeviceFixture : public testing::Test {

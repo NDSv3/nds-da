@@ -16,6 +16,19 @@ enum class MemoryElementType {
     ONE_D
 };
 
+static std::string generateName(const std::string& baseName) {
+    if (baseName.size() > 0 && baseName[0] == '.')
+        return baseName.substr(1);
+    else
+        return baseName;
+}
+static std::string generateWritePV(const std::string& baseName) {
+    return generateName(baseName) + DAPV_SET_SUFFIX;
+}
+static std::string generateReadPV(const std::string& baseName) {
+    return generateName(baseName) + DAPV_GET_SUFFIX;
+}
+
 // TODO: Extract PV name generation logic to allow parsing
 struct MemoryElement {
     std::string name, readPV, writePV;
@@ -23,9 +36,9 @@ struct MemoryElement {
     bool isSigned;
 
     MemoryElement(const std::string& name, size_t fracBits = 0, bool isSigned = false)
-        : name(name),
-          readPV(name + DAPV_GET_SUFFIX),
-          writePV(name + DAPV_SET_SUFFIX),
+        : name(generateName(name)),
+          readPV(generateReadPV(name)),
+          writePV(generateWritePV(name)),
           fracBits(fracBits),
           isSigned(isSigned) {};
 
