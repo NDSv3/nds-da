@@ -73,3 +73,25 @@ TEST_F(ndsDABasicDeviceFixture, GetMemoryMapFile) {
     EXPECT_NE(tmp_time.tv_sec, 0);
     EXPECT_EQ(tmp_string, NDSDA_TEST_MMAPFILE);
 }
+
+TEST_F(ndsDABasicDeviceFixture, WriteReadPVInt32) {
+    int32_t write_value = 12345678;
+    int32_t read_value  = 0;
+    timespec tmp_time;
+
+    iface->writeCSValue("/deviceAccessDevice-" + NDSDA_TEST_SIGNEDREGPV + "-Set", tmp_time, write_value);
+    iface->readCSValue("/deviceAccessDevice-" + NDSDA_TEST_SIGNEDREGPV + "-Get", &tmp_time, &read_value);
+
+    EXPECT_EQ(write_value, read_value);
+}
+
+TEST_F(ndsDABasicDeviceFixture, WriteReadPVUInt32) {
+    uint32_t write_value = -1;
+    int32_t read_value   = 0;
+    timespec tmp_time;
+
+    iface->writeCSValue("/deviceAccessDevice-" + NDSDA_TEST_REGISTERPV + "-Set", tmp_time, std::bit_cast<int32_t>(write_value));
+    iface->readCSValue("/deviceAccessDevice-" + NDSDA_TEST_REGISTERPV + "-Get", &tmp_time, &read_value);
+
+    EXPECT_EQ(write_value, std::bit_cast<int32_t>(read_value));
+}
