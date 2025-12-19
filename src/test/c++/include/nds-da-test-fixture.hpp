@@ -8,9 +8,13 @@
 #include "ndsdaBridge.hpp"
 #include "ndsdaFileParser.hpp"
 
-#define NDSDA_TEST_DEVICEALIAS "test_device"
-#define NDSDA_TEST_DEVICE_MAPFILE "../src/test/test-devices.dmap"
-#define NDSDA_TEST_MEMORY_MAPFILE "../src/test/test-memory.mmap"
+const std::string NDSDA_TEST_DEVICEALIAS = "test_device";
+const std::string NDSDA_TEST_DMAPFILE    = "../src/test/test-devices.dmap";
+const std::string NDSDA_TEST_MMAPFILE    = "../src/test/test-memory.mmap";
+const std::string NDSDA_TEST_REGISTERPV  = "BASE.FIRST_REG";
+const std::string NDSDA_TEST_SIGNEDREGPV = "BASE.SECOND_REG";
+const std::string NDSDA_TEST_ONEDPV      = ".DMA_SAMPLES";
+const size_t NDSDA_TEST_ONEDELEMENTS     = 200;
 
 // WARNING: MUST match the content of MEMORY_MAPFILE with DEVICE_ALIAS
 static const std::vector<std::shared_ptr<ndsda::MemoryElement>> expectedElements = {
@@ -24,17 +28,13 @@ static const std::vector<std::shared_ptr<ndsda::MemoryElement>> expectedElements
 
 class ndsDABasicDeviceFixture : public testing::Test {
 protected:
-    const std::string DEVICE_ALIAS   = NDSDA_TEST_DEVICEALIAS;
-    const std::string DEVICE_MAPFILE = NDSDA_TEST_DEVICE_MAPFILE;
-    const std::string MEMORY_MAPFILE = NDSDA_TEST_MEMORY_MAPFILE;
-
     nds::Factory factory;
     nds::namedParameters_t params;
     nds::tests::TestControlSystemInterfaceImpl* iface;
 
     ndsDABasicDeviceFixture() : factory("test") {
-        params.emplace("DeviceAlias", DEVICE_ALIAS);
-        params.emplace("DeviceMapFile", DEVICE_MAPFILE);
+        params.emplace("DeviceAlias", NDSDA_TEST_DEVICEALIAS);
+        params.emplace("DeviceMapFile", NDSDA_TEST_DMAPFILE);
     }
     // ~ndsDABasicDeviceFixture() override {}
 
@@ -51,8 +51,8 @@ protected:
 class ndsDAFileParserFixture : public testing::Test {
 protected:
     const std::string DEVICE_ALIAS   = NDSDA_TEST_DEVICEALIAS;
-    const std::string DEVICE_MAPFILE = NDSDA_TEST_DEVICE_MAPFILE;
-    const std::string MEMORY_MAPFILE = NDSDA_TEST_MEMORY_MAPFILE;
+    const std::string DEVICE_MAPFILE = NDSDA_TEST_DMAPFILE;
+    const std::string MEMORY_MAPFILE = NDSDA_TEST_MMAPFILE;
 
     std::unique_ptr<ndsda::FileParser> parser;
 
@@ -65,19 +65,10 @@ protected:
 
 class ndsDABridgeFixture : public testing::Test {
 protected:
-    const std::string DEVICE_ALIAS   = NDSDA_TEST_DEVICEALIAS;
-    const std::string DEVICE_MAPFILE = NDSDA_TEST_DEVICE_MAPFILE;
-    const std::string MEMORY_MAPFILE = NDSDA_TEST_MEMORY_MAPFILE;
-
-    const std::string DAPV_REGISTER_PV        = "BASE.FIRST_REG";
-    const std::string DAPV_REGISTER_SIGNED_PV = "BASE.SECOND_REG";
-    const std::string DAPV_ONED_PV            = ".DMA_SAMPLES";
-    const size_t DAPV_ONED_ELEMENTS           = 200;
-
     std::unique_ptr<ndsda::DABridge> bridge;
 
     void SetUp() override {
-        bridge = std::make_unique<ndsda::DABridge>(DEVICE_MAPFILE, DEVICE_ALIAS, expectedElements);
+        bridge = std::make_unique<ndsda::DABridge>(NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS, expectedElements);
     }
 
     void TearDown() override {}

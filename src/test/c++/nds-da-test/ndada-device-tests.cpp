@@ -33,7 +33,7 @@ TEST(DeviceTests, DeviceNotInMap_Exception) {
     nds::namedParameters_t params;
 
     params.emplace("DeviceAlias", "NonExistingDevice");
-    params.emplace("DeviceMapFile", NDSDA_TEST_DEVICE_MAPFILE);
+    params.emplace("DeviceMapFile", NDSDA_TEST_MMAPFILE);
 
     ASSERT_THROW(
         factory.createDevice("DADevice", "deviceAccessDevice", params),
@@ -46,7 +46,7 @@ TEST(DeviceTests, SuccessfulDeviceCreation) {
     nds::namedParameters_t params;
 
     params.emplace("DeviceAlias", NDSDA_TEST_DEVICEALIAS);
-    params.emplace("DeviceMapFile", NDSDA_TEST_DEVICE_MAPFILE);
+    params.emplace("DeviceMapFile", NDSDA_TEST_DMAPFILE);
 
     factory.createDevice("DADevice", "deviceAccessDevice", params);
     factory.destroyDevice("deviceAccessDevice");
@@ -58,11 +58,11 @@ TEST_F(ndsDABasicDeviceFixture, GetDeviceMapPVs) {
 
     iface->readCSValue("/deviceAccessDevice-deviceAlias", &tmp_time, &tmp_string);
     EXPECT_NE(tmp_time.tv_sec, 0);
-    EXPECT_EQ(tmp_string, DEVICE_ALIAS);
+    EXPECT_EQ(tmp_string, NDSDA_TEST_DEVICEALIAS);
 
     iface->readCSValue("/deviceAccessDevice-deviceMapFile", &tmp_time, &tmp_string);
     EXPECT_NE(tmp_time.tv_sec, 0);
-    EXPECT_EQ(tmp_string, DEVICE_MAPFILE);
+    EXPECT_EQ(tmp_string, NDSDA_TEST_DMAPFILE);
 }
 
 TEST_F(ndsDABasicDeviceFixture, GetMemoryMapFile) {
@@ -71,5 +71,5 @@ TEST_F(ndsDABasicDeviceFixture, GetMemoryMapFile) {
 
     iface->readCSValue("/deviceAccessDevice-memoryMapFile", &tmp_time, &tmp_string);
     EXPECT_NE(tmp_time.tv_sec, 0);
-    EXPECT_EQ(tmp_string, MEMORY_MAPFILE);
+    EXPECT_EQ(tmp_string, NDSDA_TEST_MMAPFILE);
 }

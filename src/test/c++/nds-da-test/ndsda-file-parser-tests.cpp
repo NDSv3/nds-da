@@ -13,21 +13,21 @@ TEST(FileParser, wrongFilePath_exception) {
 }
 
 TEST(FileParser, wrongFileFormat_exception) {
-    const std::string wrongFilePath = NDSDA_TEST_MEMORY_MAPFILE;  // Using mmap instead of dmap
+    const std::string wrongFilePath = NDSDA_TEST_MMAPFILE;  // Using mmap instead of dmap
     const std::string deviceAlias   = NDSDA_TEST_DEVICEALIAS;
 
     EXPECT_THROW({ ndsda::FileParser parser(wrongFilePath, NDSDA_TEST_DEVICEALIAS); }, std::runtime_error);
 }
 
 TEST(FileParser, missingDeviceAlias_exception) {
-    const std::string deviceMapFile    = NDSDA_TEST_DEVICE_MAPFILE;
+    const std::string deviceMapFile    = NDSDA_TEST_DMAPFILE;
     const std::string wrongDeviceAlias = "non_existing_device";
 
     EXPECT_THROW({ ndsda::FileParser parser(deviceMapFile, wrongDeviceAlias); }, std::runtime_error);
 }
 
 TEST_F(ndsDAFileParserFixture, getMemoryMapFile) {
-    ASSERT_EQ(parser->getMemoryMapFile(), ndsDAFileParserFixture::MEMORY_MAPFILE);
+    ASSERT_EQ(parser->getMemoryMapFile(), NDSDA_TEST_MMAPFILE);
 }
 
 static const std::string elementToString(const ndsda::MemoryElement& element) {
