@@ -52,11 +52,11 @@ FileParser::FileParser(std::string deviceMapFile, std::string deviceMapAlias)
 
 FileParser::~FileParser() {}
 
-const std::string FileParser::getMemoryMapFile() const {
+const std::string FileParser::getMemoryMapFile() const noexcept {
     return this->memoryMapFile;
 }
 
-const std::vector<std::shared_ptr<ndsda::MemoryElement>> FileParser::getElements() const {
+const std::vector<std::shared_ptr<ndsda::MemoryElement>> FileParser::getElements() const noexcept {
     return this->elements;
 }
 

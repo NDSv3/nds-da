@@ -13,8 +13,8 @@ public:
     FileParser(std::string deviceMapFile, std::string deviceMapAlias);
     ~FileParser();
 
-    const std::string getMemoryMapFile() const;
-    const std::vector<std::shared_ptr<MemoryElement>> getElements() const;
+    const std::string getMemoryMapFile() const noexcept;
+    const std::vector<std::shared_ptr<MemoryElement>> getElements() const noexcept;
 
 private:
     std::filesystem::path deviceMapFile, memoryMapFile;

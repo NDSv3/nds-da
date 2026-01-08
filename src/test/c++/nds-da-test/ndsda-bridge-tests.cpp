@@ -1,3 +1,4 @@
+
 #include <gtest/gtest.h>
 #include <nds3/nds.h>
 #include <nds3/ndsTestFactory.h>
@@ -75,7 +76,7 @@ TEST_F(ndsDABridgeFixture, MultipleWritesRetainLatestValue) {
 
 TEST_F(ndsDABridgeFixture, ReadNonexistentRegisterThrows) {
     EXPECT_THROW(
-        bridge->readRegister<uint32_t>("nonexistent-Get"),
+        (void)bridge->readRegister<uint32_t>("nonexistent-Get"),
         nds::NdsError
     );
 }

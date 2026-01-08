@@ -16,12 +16,14 @@ public:
     ~DABridge();
 
     template <Integer32 T>
+    [[nodiscard]]
     T readRegister(const std::string& readPV);
 
     template <Integer32 T>
     void writeRegister(const std::string& writePV, T value);
 
     template <Integer32 T>
+    [[nodiscard]]
     std::vector<T> readOneDRegister(const std::string& readPV);
 
     template <Integer32 T>

@@ -63,7 +63,7 @@ T DABridge::readRegister(const std::string& readPV) {
     try {
         auto& accessor = std::get<ChimeraTK::ScalarRegisterAccessor<T>>(acc->daAccessor.value());
         accessor.read();
-        return accessor;
+        return static_cast<T>(accessor);
     } catch (const std::bad_variant_access&) {
         throw nds::NdsError("Register " + acc->name + " of PV " + acc->readPV + " has incompatible type");
     }
