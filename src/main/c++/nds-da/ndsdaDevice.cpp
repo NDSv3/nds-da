@@ -74,6 +74,8 @@ Device::~Device() {}
 
 template <typename T>
 void Device::addScalarPV(const std::shared_ptr<ndsda::MemoryElement>& e) {
+    static_assert(PVScalarType<T>, "This type is not supported for scalar PVs");
+
     const auto readLambda = [this, e](timespec* ts, T* value) {
         clock_gettime(CLOCK_REALTIME, ts);
         *value = this->daBridge->readRegister<T>(e->readPV);

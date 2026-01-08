@@ -11,6 +11,26 @@
 
 namespace ndsda {
 
+// clang-format off
+template <typename T>
+concept PVScalarType = (
+    std::same_as<T, std::int32_t> || std::same_as<T, std::int64_t> ||
+    std::same_as<T, float>        || std::same_as<T, double>       ||
+    std::same_as<T, std::string> );
+
+template <typename T>
+concept PVVectorType = (
+    std::same_as<T, std::vector<bool>>          ||
+    std::same_as<T, std::vector<std::uint8_t>>  || std::same_as<T, std::vector<std::uint16_t>> ||
+    std::same_as<T, std::vector<std::uint32_t>> ||
+    std::same_as<T, std::vector<std::int8_t>>   || std::same_as<T, std::vector<std::int16_t>>  ||
+    std::same_as<T, std::vector<std::int32_t>>  || std::same_as<T, std::vector<std::int64_t>>  ||
+    std::same_as<T, std::vector<float>>         || std::same_as<T, std::vector<double>> );
+
+template <typename T>
+concept PVDataType = (PVScalarType<T> || PVVectorType<T>);
+// clang-format on
+
 class Device {
 private:
     std::string deviceName;
