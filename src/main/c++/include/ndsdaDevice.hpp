@@ -6,7 +6,6 @@
 #include <string>
 #include "nds3/pvVariableIn.h"
 
-#include "ndsdaFileParser.hpp"
 #include "ndsdaBridge.hpp"
 
 namespace ndsda {
@@ -33,14 +32,13 @@ concept PVDataType = (PVScalarType<T> || PVVectorType<T>);
 
 class Device {
 private:
-    std::string deviceName;
+    std::string deviceName, memoryMapFile;
     nds::Port rootNode;
 
-    std::unique_ptr<FileParser> fileParser;
     std::unique_ptr<DABridge> daBridge;
 
     nds::PVVariableIn<std::string> deviceAlias, deviceMapFile;
-    nds::PVDelegateIn<std::string> memoryMapFile;
+    nds::PVDelegateIn<std::string> memoryMapFilePV;
 
     template <typename T>
     void addScalarPV(const std::shared_ptr<MemoryElement>& element);

@@ -6,7 +6,12 @@
 #include <ChimeraTK/Device.h>
 #include <variant>
 
+#include <boost/outcome/result.hpp>
+
 namespace ndsda {
+
+template <typename T, typename E>
+using Result = boost::outcome_v2::result<T, E>;
 
 const std::string DAPV_GET_SUFFIX = "-Get";
 const std::string DAPV_SET_SUFFIX = "-Set";
@@ -28,6 +33,30 @@ static std::string generateWritePV(const std::string& baseName) {
 static std::string generateReadPV(const std::string& baseName) {
     return generateName(baseName) + DAPV_GET_SUFFIX;
 }
+
+struct ndsdaError : public std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
+
+struct NodeMapPV {
+    std::string name;
+    std::string reg;
+    std::string type;
+    bool approximateFloat = false;
+    size_t nElem          = 1;
+    std::string readPV;
+    std::string writePV;
+
+    bool operator==(const NodeMapPV& other) const {
+        return (this->name == other.name) &&
+               (this->reg == other.reg) &&
+               (this->type == other.type) &&
+               (this->approximateFloat == other.approximateFloat) &&
+               (this->nElem == other.nElem) &&
+               (this->readPV == other.readPV) &&
+               (this->writePV == other.writePV);
+    }
+};
 
 // TODO: Extract PV name generation logic to allow parsing
 struct MemoryElement {

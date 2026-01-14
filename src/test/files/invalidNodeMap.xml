@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndsda:NodeMap 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:ndsda="http://www.example.org/ndsda"
+    xsi:schemaLocation="http://www.example.org/ndsda ../../main/ndsdaNodeMapSchema.xsd" >
+    
+    <test1>
+        <test2>
+            <test3/>
+        </test2>
+    </test1>
+
+</ndsda:NodeMap>

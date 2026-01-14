@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://www.example.org/ndsda"
+           xmlns:ndsda="http://www.example.org/ndsda"
+           elementFormDefault="qualified">
+
+    <xs:element name="NodeMap">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="PVMap" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="PV" type="ndsda:ndsPV" minOccurs="0" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="ndsPV">
+        <xs:sequence>
+            <xs:element name="ReadPV" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="WritePV" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="register" type="xs:string" use="required"/>
+        <xs:attribute name="type" type="ndsda:ndsPVType" use="required"/>
+        <xs:attribute name="floatMethod" type="ndsda:ndsPVfloatMethod" use="optional" default="bitcast" />
+        <xs:attribute name="nElem" type="ndsda:ndsPVnElem" use="optional" default="1"/>
+    </xs:complexType>
+    
+    <xs:simpleType name="ndsPVType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="int32"/>
+            <xs:enumeration value="int64"/>
+            <xs:enumeration value="float"/>
+            <xs:enumeration value="double"/>
+            <xs:enumeration value="string"/>
+            <!-- XML Limitation: Cannot use vector<> -->
+            <xs:enumeration value="vector(bool)"/>
+            <xs:enumeration value="vector(int8)"/>
+            <xs:enumeration value="vector(int16)"/>
+            <xs:enumeration value="vector(int32)"/>
+            <xs:enumeration value="vector(int64)"/>
+            <xs:enumeration value="vector(uint8)"/>
+            <xs:enumeration value="vector(uint16)"/>
+            <xs:enumeration value="vector(uint32)"/>
+            <xs:enumeration value="vector(float)"/>
+            <xs:enumeration value="vector(double)"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="ndsPVfloatMethod">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="approximate"/>
+            <xs:enumeration value="bitcast"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="ndsPVnElem">
+        <xs:restriction base="xs:int">
+            <xs:minInclusive value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

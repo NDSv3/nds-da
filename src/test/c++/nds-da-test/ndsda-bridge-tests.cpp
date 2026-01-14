@@ -14,14 +14,14 @@
 
 TEST(DABridge, ConstructorWithInvalidDmapFilePath) {
     EXPECT_THROW(
-        ndsda::DABridge bridge("invalid/path.dmap", NDSDA_TEST_DEVICEALIAS, expectedElements),
+        ndsda::DABridge bridge("invalid/path.dmap", NDSDA_TEST_DEVICEALIAS, expectedMemoryElements),
         nds::NdsError
     );
 }
 
 TEST(DABridge, ConstructorWithInvalidDeviceName) {
     EXPECT_THROW(
-        ndsda::DABridge bridge(NDSDA_TEST_DMAPFILE, "NONEXISTENT_DEVICE", expectedElements),
+        ndsda::DABridge bridge(NDSDA_TEST_DMAPFILE, "NONEXISTENT_DEVICE", expectedMemoryElements),
         nds::NdsError
     );
 }

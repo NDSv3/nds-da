@@ -4,33 +4,95 @@
 #include <ctime>
 #include <memory>
 #include "nds-da-test-fixture.hpp"
+#include "ndsdaFileParser.hpp"
+#include "ndsdaMemoryElements.hpp"
 
-TEST(FileParser, wrongFilePath_exception) {
+/* ================================= UTILITY FUNCTIONS ======================================= */
+static const std::string memoryElement_toString(const ndsda::MemoryElement& element);
+static const std::string memoryMapPV_toString(const ndsda::NodeMapPV& nodeMapPv);
+
+/* ================================= DEVICE FILE TESTS ======================================= */
+
+TEST(FileParser, deviceFile_InvalidPath_exception) {
     const std::string wrongFilePath = "non_existing_file.dmap";
     const std::string deviceAlias   = NDSDA_TEST_DEVICEALIAS;
 
-    EXPECT_THROW({ ndsda::FileParser parser(wrongFilePath, NDSDA_TEST_DEVICEALIAS); }, std::runtime_error);
+    EXPECT_TRUE(ndsda::FileParser::getMemoryMapFile(wrongFilePath, deviceAlias).has_error());
 }
 
-TEST(FileParser, wrongFileFormat_exception) {
-    const std::string wrongFilePath = NDSDA_TEST_MMAPFILE;  // Using mmap instead of dmap
+/* ================================= MEMORY MAP TESTS ======================================= */
+
+TEST(FileParser, memoryMap_InvalidPath_exception) {
+    const std::string wrongFilePath = "non_existing_file.mmap";
+
+    EXPECT_TRUE(ndsda::FileParser::parseMemoryMapFile(wrongFilePath).has_error());
+}
+
+TEST(FileParser, memoryMap_wrongFileFormat_exception) {
+    const std::string memoryMapFile = NDSDA_TEST_MMAPFILE;  // Using mmap instead of dmap
     const std::string deviceAlias   = NDSDA_TEST_DEVICEALIAS;
 
-    EXPECT_THROW({ ndsda::FileParser parser(wrongFilePath, NDSDA_TEST_DEVICEALIAS); }, std::runtime_error);
+    EXPECT_TRUE(ndsda::FileParser::getMemoryMapFile(memoryMapFile, deviceAlias).has_error());
 }
 
-TEST(FileParser, missingDeviceAlias_exception) {
+TEST(FileParser, memoryMap_missingDeviceAlias_exception) {
     const std::string deviceMapFile    = NDSDA_TEST_DMAPFILE;
     const std::string wrongDeviceAlias = "non_existing_device";
 
-    EXPECT_THROW({ ndsda::FileParser parser(deviceMapFile, wrongDeviceAlias); }, std::runtime_error);
+    EXPECT_TRUE(ndsda::FileParser::getMemoryMapFile(deviceMapFile, wrongDeviceAlias).has_error());
 }
 
-TEST_F(ndsDAFileParserFixture, getMemoryMapFile) {
-    ASSERT_EQ(parser->getMemoryMapFile(), NDSDA_TEST_MMAPFILE);
+TEST(FileParser, memoryMap_validFile_correctElements) {
+    auto elements = ndsda::FileParser::parseMemoryMapFile(NDSDA_TEST_MMAPFILE);
+    ASSERT_TRUE(elements.has_value()) << "Failed to parse valid memory map file: " << elements.assume_error().what();
+
+    std::vector<std::shared_ptr<ndsda::MemoryElement>> vec = elements.assume_value();
+    for (size_t i = 0; i < expectedMemoryElements.size(); ++i) {
+        ASSERT_EQ(*vec[i], *expectedMemoryElements[i])
+            << "Parsed element does not match expected element:\n"
+            << "Parsed: "
+            << memoryElement_toString(*vec[i]) << "\n"
+            << "Expected: "
+            << memoryElement_toString(*expectedMemoryElements[i]) << "\n";
+    }
 }
 
-static const std::string elementToString(const ndsda::MemoryElement& element) {
+/* ================================ NODEMAP FILE TESTS ===================================== */
+
+TEST(FileParser, nodeMapFile_InvalidPath_exception) {
+    const std::string wrongFilePath = "non_existing_file.xml";
+
+    EXPECT_TRUE(ndsda::FileParser::parseNodeMapFile(wrongFilePath).has_error());
+}
+
+TEST(FileParser, nodeMapFile_invalidFormat_exception) {
+    const std::string wrongFilePath = NDSDA_TEST_DMAPFILE;  // Using dmap instead of xml
+
+    EXPECT_TRUE(ndsda::FileParser::parseNodeMapFile(wrongFilePath).has_error());
+}
+
+TEST(FileParser, nodeMapFile_malformedXML_exception) {
+    const std::string wrongFilePath = NDSDA_TEST_INVALIDXML;
+
+    EXPECT_TRUE(ndsda::FileParser::parseNodeMapFile(wrongFilePath).has_error());
+}
+
+TEST(FileParser, nodeMapFile_validFile_correctPVs) {
+    const std::string wrongFilePath = NDSDA_TEST_NODEMAPFILE;
+
+    auto pvs = ndsda::FileParser::parseNodeMapFile(NDSDA_TEST_NODEMAPFILE);
+    ASSERT_TRUE(pvs.has_value()) << "Failed to parse valid node map file: " << pvs.assume_error().what();
+
+    auto& pvsVector = pvs.assume_value();
+    for (size_t i = 0; i < expectedNodeMapPVs.size(); ++i) {
+        ASSERT_EQ(pvsVector[i], expectedNodeMapPVs[i])
+            << "Parsed PV does not match expected PV:\n"
+            << "Parsed: " << memoryMapPV_toString(pvsVector[i]) << "\n"
+            << "Expected: " << memoryMapPV_toString(expectedNodeMapPVs[i]) << "\n";
+    }
+}
+
+static const std::string memoryElement_toString(const ndsda::MemoryElement& element) {
     std::string repr = "Element Name: " + element.name + "\n";
     repr += "  Read PV: " + element.readPV + "\n";
     repr += "  Write PV: " + element.writePV + "\n";
@@ -46,15 +108,14 @@ static const std::string elementToString(const ndsda::MemoryElement& element) {
 
     return repr;
 }
-TEST_F(ndsDAFileParserFixture, elementParsing) {
-    auto vec = parser->getElements();
 
-    for (size_t i = 0; i < expectedElements.size(); ++i) {
-        ASSERT_EQ(*vec[i], *expectedElements[i])
-            << "Parsed element does not match expected element:\n"
-            << "Parsed: "
-            << elementToString(*vec[i]) << "\n"
-            << "Expected: "
-            << elementToString(*expectedElements[i]) << "\n";
-    }
+static const std::string memoryMapPV_toString(const ndsda::NodeMapPV& nodeMapPv) {
+    std::string repr = "PV Name: " + nodeMapPv.name + "\n";
+    repr += "  Address: " + nodeMapPv.reg + "\n";
+    repr += "  Type: " + nodeMapPv.type + "\n";
+    repr += "  Approximate Float: " + std::string(nodeMapPv.approximateFloat ? "true" : "false") + "\n";
+    repr += "  Number of Elements: " + std::to_string(nodeMapPv.nElem) + "\n";
+    repr += "  Read PV: " + nodeMapPv.readPV + "\n";
+    repr += "  Write PV: " + nodeMapPv.writePV + "\n";
+    return repr;
 }

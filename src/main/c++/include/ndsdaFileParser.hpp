@@ -2,25 +2,27 @@
 #define NDS_DA_FILE_PARSER
 
 #include <filesystem>
-#include <memory>
 #include <string>
 #include "ndsdaMemoryElements.hpp"
 
 namespace ndsda {
 
-class FileParser {
-public:
-    FileParser(std::string deviceMapFile, std::string deviceMapAlias);
-    ~FileParser();
+namespace FileParser {
 
-    const std::string getMemoryMapFile() const noexcept;
-    const std::vector<std::shared_ptr<MemoryElement>> getElements() const noexcept;
+Result<std::string, ndsdaError> getMemoryMapFile(
+    const std::filesystem::path& deviceMapFile,
+    const std::string& deviceMapAlias
+);
 
-private:
-    std::filesystem::path deviceMapFile, memoryMapFile;
-    std::string deviceMapAlias;
-    std::vector<std::shared_ptr<MemoryElement>> elements;
-};
+Result<std::vector<std::shared_ptr<MemoryElement>>, ndsdaError> parseMemoryMapFile(
+    const std::filesystem::path& memoryMapFile
+);
+
+Result<std::vector<NodeMapPV>, ndsdaError> parseNodeMapFile(
+    const std::filesystem::path& nodeMapFile
+);
+
+}  // namespace FileParser
 
 }  // namespace ndsda
 

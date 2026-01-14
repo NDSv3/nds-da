@@ -1,9 +1,11 @@
 #include "ndsdaDevice.hpp"
 #include <cstdint>
 #include <ctime>
+#include <utility>
 #include "nds3/definitions.h"
 #include "nds3/exceptions.h"
 #include "ndsdaBridge.hpp"
+#include "ndsdaFileParser.hpp"
 
 #define BIND_DELEGATEIN(func) (std::bind(&func, this, std::placeholders::_1, std::placeholders::_2))
 
@@ -17,9 +19,9 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
       rootNode(deviceName),
       deviceAlias("deviceAlias"),
       deviceMapFile("deviceMapFile"),
-      memoryMapFile("memoryMapFile", [this](timespec* ts, std::string* value) {
+      memoryMapFilePV("memoryMapFile", [this](timespec* ts, std::string* value) {
           clock_gettime(CLOCK_REALTIME, ts);
-          *value = this->fileParser->getMemoryMapFile();
+          *value = this->memoryMapFile;
       }) {
 
     std::string deviceMapFileStr, deviceAliasStr;
@@ -37,9 +39,18 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
         throw nds::NdsError("Missing MemoryMapFile parameter");
     }
 
-    fileParser = std::make_unique<FileParser>(deviceMapFileStr, deviceAliasStr);
+    if (auto r = FileParser::getMemoryMapFile(deviceMapFileStr, deviceAliasStr)) {
+        this->memoryMapFile = r.assume_value();
+    } else {
+        throw nds::NdsError(r.assume_error().what());
+    }
 
-    std::vector<std::shared_ptr<ndsda::MemoryElement>> elements = fileParser->getElements();
+    std::vector<std::shared_ptr<ndsda::MemoryElement>> elements;
+    if (auto r = FileParser::parseMemoryMapFile(this->memoryMapFile)) {
+        elements = std::move(r.assume_value());
+    } else {
+        throw nds::NdsError(r.assume_error().what());
+    }
 
     daBridge = std::make_unique<DABridge>(deviceMapFileStr, deviceAliasStr, elements);
 
@@ -65,7 +76,7 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
 
     rootNode.addChild(deviceAlias);
     rootNode.addChild(deviceMapFile);
-    rootNode.addChild(memoryMapFile);
+    rootNode.addChild(memoryMapFilePV);
 
     rootNode.initialize(this, factory);
 }

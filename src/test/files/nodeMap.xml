@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndsda:NodeMap 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:ndsda="http://www.example.org/ndsda"
+    xsi:schemaLocation="http://www.example.org/ndsda ../../main/ndsdaNodeMapSchema.xsd" >
+    
+    <ndsda:PVMap>
+        <ndsda:PV name="PV1" register="BASE.FIRST_REG" type="int32"/>
+        <ndsda:PV name="PV2" register="BASE.SECOND_REG" type="float" floatMethod="approximate" />
+        <ndsda:PV name="PV3" register="BASE.THIRD_REG" type="float" floatMethod="bitcast" >
+            <ndsda:ReadPV>PV3-Getter</ndsda:ReadPV>
+            <ndsda:WritePV>PV3-Setter</ndsda:WritePV>
+        </ndsda:PV>
+        <ndsda:PV name="PV4" register=".DMA_SAMPLES" type="vector(uint32)" nElem="200"/>
+    </ndsda:PVMap>
+
+    <!-- <ndsda:FirmwareNode>
+        <name>Firmware 1</name>
+        <Version>xxx</Version>             <!- - VariableIn  string - ->
+        <Status>xxx</Status>               <!- - VariableIn  int32  - ->
+        <HWRevision>xxx</HWRevision>       <!- - VariableIn  string - ->
+        <SerialNumber>xxx</SerialNumber>   <!- - VariableIn  string - ->
+        <Model>xxx</Model>                 <!- - VariableIn  string - ->
+        <Type>xxx</Type>                   <!- - VariableIn  string - ->
+        <DriverVersion>xxx</DriverVersion> <!- - VariableIn  string - ->
+        <ChassisNumber>xxx</ChassisNumber> <!- - VariableIn  int32  - ->
+        <SlotNumber>xxx</SlotNumber>       <!- - VariableIn  int32  - ->
+        <FilePath>xxx</FilePath>           <!- - DelegateOut string - ->
+        <FilePath_RBV>xxx</FilePath_RBV>   <!- - VariableIn  string - ->
+    </ndsda:FirmwareNode> -->
+</ndsda:NodeMap>
