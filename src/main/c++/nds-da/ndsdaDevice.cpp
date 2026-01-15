@@ -9,41 +9,44 @@
 
 #define BIND_DELEGATEIN(func) (std::bind(&func, this, std::placeholders::_1, std::placeholders::_2))
 
+#define GET_NDS_PARAMETER(var, paramName)                        \
+    try {                                                        \
+        var = params.at(paramName);                              \
+    } catch (const std::out_of_range&) {                         \
+        throw nds::NdsError("Missing " #paramName " parameter"); \
+    }
+
 using ndsda::Device;
+using ndsda::Result;
 
 template <>
 void Device::addScalarPV<uint32_t>(const std::shared_ptr<ndsda::MemoryElement>& e);
 
 Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
     : deviceName(deviceName),
-      rootNode(deviceName),
-      deviceAlias("deviceAlias"),
-      deviceMapFile("deviceMapFile"),
-      memoryMapFilePV("memoryMapFile", [this](timespec* ts, std::string* value) {
-          clock_gettime(CLOCK_REALTIME, ts);
-          *value = this->memoryMapFile;
-      }) {
+      rootNode(deviceName) {
+    nds::PVVariableIn<std::string> deviceAliasPV("deviceAlias"),
+        deviceMapFilePV("deviceMapFile"), memoryMapFilePV("memoryMapFile"), nodeMapFilePV("nodeMapFile");
 
-    std::string deviceMapFileStr, deviceAliasStr;
-    try {
-        deviceMapFileStr = params.at("DeviceMapFile");
-    } catch (const std::out_of_range&) {
-        // ndsErrorStream(rootNode) << "Missing DADeviceMapFile" << std::endl;
-        throw nds::NdsError("Missing DeviceMapFile parameter");
-    }
+    GET_NDS_PARAMETER(this->deviceMapFile, "DeviceMapFile");
+    GET_NDS_PARAMETER(this->deviceAlias, "DeviceAlias");
+    GET_NDS_PARAMETER(this->nodeMapFile, "NodeMapFile");
 
-    try {
-        deviceAliasStr = params.at("DeviceAlias");
-    } catch (const std::out_of_range&) {
-        // ndsErrorStream(rootNode) << "Missing DAMemoryMapFile" << std::endl;
-        throw nds::NdsError("Missing MemoryMapFile parameter");
-    }
-
-    if (auto r = FileParser::getMemoryMapFile(deviceMapFileStr, deviceAliasStr)) {
+    if (auto r = FileParser::getMemoryMapFile(deviceMapFile, deviceAlias)) {
         this->memoryMapFile = r.assume_value();
     } else {
         throw nds::NdsError(r.assume_error().what());
     }
+
+    deviceAliasPV.setValue(deviceAlias);
+    deviceMapFilePV.setValue(deviceMapFile);
+    memoryMapFilePV.setValue(memoryMapFile);
+    nodeMapFilePV.setValue(nodeMapFile);
+
+    rootNode.addChild(deviceAliasPV);
+    rootNode.addChild(deviceMapFilePV);
+    rootNode.addChild(memoryMapFilePV);
+    rootNode.addChild(nodeMapFilePV);
 
     std::vector<std::shared_ptr<ndsda::MemoryElement>> elements;
     if (auto r = FileParser::parseMemoryMapFile(this->memoryMapFile)) {
@@ -52,31 +55,14 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
         throw nds::NdsError(r.assume_error().what());
     }
 
-    daBridge = std::make_unique<DABridge>(deviceMapFileStr, deviceAliasStr, elements);
-
-    using met = ndsda::MemoryElementType;
-    for (auto& e : elements) {
-        if (e->getType() == met::SCALAR) {
-            if (e->isSigned) {
-                addScalarPV<int32_t>(e);
-            } else {
-                addScalarPV<uint32_t>(e);
-            }
-        } else if (e->getType() == met::ONE_D) {
-            if (e->isSigned) {
-                addOneDPV<int32_t>(e);
-            } else {
-                addOneDPV<uint32_t>(e);
-            }
-        }
+    std::vector<NodeMapPV> nodeMapPVs;
+    if (auto r = FileParser::parseNodeMapFile(nodeMapFile)) {
+        nodeMapPVs = std::move(r.assume_value());
+    } else {
+        throw nds::NdsError(r.assume_error().what());
     }
 
-    deviceMapFile.setValue(deviceMapFileStr);
-    deviceAlias.setValue(deviceAliasStr);
-
-    rootNode.addChild(deviceAlias);
-    rootNode.addChild(deviceMapFile);
-    rootNode.addChild(memoryMapFilePV);
+    daBridge = std::make_unique<DABridge>(deviceMapFile, deviceAlias, elements);
 
     rootNode.initialize(this, factory);
 }
