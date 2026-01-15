@@ -7,7 +7,7 @@
 #include "nds3/ndsTestInterface.h"
 #include "ndsdaBridge.hpp"
 #include "ndsdaFileParser.hpp"
-#include "ndsdaMemoryElements.hpp"
+#include "ndsdaCommon.hpp"
 
 const std::string NDSDA_TEST_DEVICEALIAS = "test_device";
 const std::string NDSDA_TEST_DMAPFILE    = "../src/test/files/test-devices.dmap";

@@ -3,7 +3,7 @@
 
 #include <filesystem>
 #include <string>
-#include "ndsdaMemoryElements.hpp"
+#include "ndsdaCommon.hpp"
 
 namespace ndsda {
 

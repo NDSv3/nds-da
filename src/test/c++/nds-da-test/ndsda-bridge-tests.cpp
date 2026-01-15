@@ -10,7 +10,7 @@
 #include "nds-da-test-fixture.hpp"
 
 #include "ndsdaBridge.hpp"
-#include "ndsdaMemoryElements.hpp"
+#include "ndsdaCommon.hpp"
 
 TEST(DABridge, ConstructorWithInvalidDmapFilePath) {
     EXPECT_THROW(

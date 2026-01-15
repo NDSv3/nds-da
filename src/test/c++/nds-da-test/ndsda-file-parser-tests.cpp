@@ -5,7 +5,7 @@
 #include <memory>
 #include "nds-da-test-fixture.hpp"
 #include "ndsdaFileParser.hpp"
-#include "ndsdaMemoryElements.hpp"
+#include "ndsdaCommon.hpp"
 
 /* ================================= UTILITY FUNCTIONS ======================================= */
 static const std::string memoryElement_toString(const ndsda::MemoryElement& element);

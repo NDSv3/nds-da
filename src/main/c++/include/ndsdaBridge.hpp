@@ -3,7 +3,7 @@
 
 #include <ChimeraTK/Device.h>
 #include <memory>
-#include "ndsdaMemoryElements.hpp"
+#include "ndsdaCommon.hpp"
 
 namespace ndsda {
 
