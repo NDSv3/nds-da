@@ -8,7 +8,8 @@ TEST(DeviceTests, MissingDeviceMap_Exception) {
     nds::Factory factory("test");
     nds::namedParameters_t params;
 
-    params.emplace("MemoryMapFile", "memoryMap.txt");
+    params.emplace("DeviceAlias", "DeviceAlias");
+    params.emplace("NodeMapFile", "nodemap.xml");
 
     ASSERT_THROW(
         factory.createDevice("DADevice", "deviceAccessDevice", params),
@@ -16,11 +17,25 @@ TEST(DeviceTests, MissingDeviceMap_Exception) {
     );
 }
 
-TEST(DeviceTests, MissingMemoryMap_Exception) {
+TEST(DeviceTests, MissingDeviceAlias_Exception) {
     nds::Factory factory("test");
     nds::namedParameters_t params;
 
-    params.emplace("DeviceMapFile", "memoryMap.txt");
+    params.emplace("DeviceMapFile", "deviceMap.txt");
+    params.emplace("NodeMapFile", "nodemap.xml");
+
+    ASSERT_THROW(
+        factory.createDevice("DADevice", "deviceAccessDevice", params),
+        nds::NdsError
+    );
+}
+
+TEST(DeviceTests, MissingNodeMap_Exception) {
+    nds::Factory factory("test");
+    nds::namedParameters_t params;
+
+    params.emplace("DeviceAlias", "nodemap.xml");
+    params.emplace("DeviceMapFile", "deviceMap.txt");
 
     ASSERT_THROW(
         factory.createDevice("DADevice", "deviceAccessDevice", params),
@@ -34,6 +49,7 @@ TEST(DeviceTests, DeviceNotInMap_Exception) {
 
     params.emplace("DeviceAlias", "NonExistingDevice");
     params.emplace("DeviceMapFile", NDSDA_TEST_MMAPFILE);
+    params.emplace("NodeMapFile", "nodemap.xml");
 
     ASSERT_THROW(
         factory.createDevice("DADevice", "deviceAccessDevice", params),
@@ -47,22 +63,28 @@ TEST(DeviceTests, SuccessfulDeviceCreation) {
 
     params.emplace("DeviceAlias", NDSDA_TEST_DEVICEALIAS);
     params.emplace("DeviceMapFile", NDSDA_TEST_DMAPFILE);
+    params.emplace("NodeMapFile", NDSDA_TEST_NODEMAPFILE);
 
     factory.createDevice("DADevice", "deviceAccessDevice", params);
     factory.destroyDevice("deviceAccessDevice");
 }
 
-TEST_F(ndsDABasicDeviceFixture, GetDeviceMapPVs) {
+TEST_F(ndsDABasicDeviceFixture, GetDeviceAlias) {
     std::string tmp_string;
     timespec tmp_time;
 
     iface->readCSValue("/deviceAccessDevice-deviceAlias", &tmp_time, &tmp_string);
-    EXPECT_NE(tmp_time.tv_sec, 0);
-    EXPECT_EQ(tmp_string, NDSDA_TEST_DEVICEALIAS);
+    ASSERT_EQ(tmp_string, NDSDA_TEST_DEVICEALIAS);
+    ASSERT_NE(tmp_time.tv_sec, 0);
+}
+
+TEST_F(ndsDABasicDeviceFixture, GetDeviceMapFile) {
+    std::string tmp_string;
+    timespec tmp_time;
 
     iface->readCSValue("/deviceAccessDevice-deviceMapFile", &tmp_time, &tmp_string);
-    EXPECT_NE(tmp_time.tv_sec, 0);
-    EXPECT_EQ(tmp_string, NDSDA_TEST_DMAPFILE);
+    ASSERT_EQ(tmp_string, NDSDA_TEST_DMAPFILE);
+    ASSERT_NE(tmp_time.tv_sec, 0);
 }
 
 TEST_F(ndsDABasicDeviceFixture, GetMemoryMapFile) {
@@ -70,8 +92,17 @@ TEST_F(ndsDABasicDeviceFixture, GetMemoryMapFile) {
     timespec tmp_time;
 
     iface->readCSValue("/deviceAccessDevice-memoryMapFile", &tmp_time, &tmp_string);
-    EXPECT_NE(tmp_time.tv_sec, 0);
-    EXPECT_EQ(tmp_string, NDSDA_TEST_MMAPFILE);
+    ASSERT_EQ(tmp_string, NDSDA_TEST_MMAPFILE);
+    ASSERT_NE(tmp_time.tv_sec, 0);
+}
+
+TEST_F(ndsDABasicDeviceFixture, GetNodeMapFile) {
+    std::string tmp_string;
+    timespec tmp_time;
+
+    iface->readCSValue("/deviceAccessDevice-nodeMapFile", &tmp_time, &tmp_string);
+    ASSERT_EQ(tmp_string, NDSDA_TEST_NODEMAPFILE);
+    ASSERT_NE(tmp_time.tv_sec, 0);
 }
 
 TEST_F(ndsDABasicDeviceFixture, WriteReadPVInt32) {

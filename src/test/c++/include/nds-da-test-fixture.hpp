@@ -45,6 +45,7 @@ protected:
     ndsDABasicDeviceFixture() : factory("test") {
         params.emplace("DeviceAlias", NDSDA_TEST_DEVICEALIAS);
         params.emplace("DeviceMapFile", NDSDA_TEST_DMAPFILE);
+        params.emplace("NodeMapFile", NDSDA_TEST_NODEMAPFILE);
     }
     // ~ndsDABasicDeviceFixture() override {}
 
