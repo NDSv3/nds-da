@@ -14,11 +14,11 @@ Result<std::string, ndsdaError> getMemoryMapFile(
     const std::string& deviceMapAlias
 );
 
-Result<std::vector<std::shared_ptr<MemoryElement>>, ndsdaError> parseMemoryMapFile(
+Result<std::vector<std::unique_ptr<MemoryElement>>, ndsdaError> parseMemoryMapFile(
     const std::filesystem::path& memoryMapFile
 );
 
-Result<std::vector<NodeMapPV>, ndsdaError> parseNodeMapFile(
+Result<std::vector<std::shared_ptr<NodeMapPV>>, ndsdaError> parseNodeMapFile(
     const std::filesystem::path& nodeMapFile
 );
 

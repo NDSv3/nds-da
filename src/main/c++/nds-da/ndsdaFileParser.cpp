@@ -6,6 +6,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/outcome/try.hpp>
 
 #include "ndsdaCommon.hpp"
 
@@ -55,8 +56,8 @@ Result<std::string, ndsda::ndsdaError> ndsda::FileParser::getMemoryMapFile(
     return memoryMapFile.string();
 }
 
-Result<std::vector<std::shared_ptr<ndsda::MemoryElement>>, ndsda::ndsdaError> ndsda::FileParser::parseMemoryMapFile(const std::filesystem::path& memoryMapFile) {
-    std::vector<std::shared_ptr<ndsda::MemoryElement>> registers;
+Result<std::vector<std::unique_ptr<ndsda::MemoryElement>>, ndsda::ndsdaError> ndsda::FileParser::parseMemoryMapFile(const std::filesystem::path& memoryMapFile) {
+    std::vector<std::unique_ptr<ndsda::MemoryElement>> registers;
     std::ifstream memMap(memoryMapFile);
 
     if (!memMap.is_open()) {
@@ -75,10 +76,10 @@ Result<std::vector<std::shared_ptr<ndsda::MemoryElement>>, ndsda::ndsdaError> nd
         }
 
         if (nElements == 1) {
-            registers.push_back(std::make_shared<ndsda::RegisterElement>(path, fixed, bool(sgnd)));
+            registers.push_back(std::make_unique<ndsda::RegisterElement>(path, fixed, bool(sgnd)));
         } else {
             registers.push_back(
-                std::make_shared<ndsda::OneDElement>(path, nElements, width, fixed, bool(sgnd))
+                std::make_unique<ndsda::OneDElement>(path, nElements, width, fixed, bool(sgnd))
             );
         }
     }
@@ -86,7 +87,7 @@ Result<std::vector<std::shared_ptr<ndsda::MemoryElement>>, ndsda::ndsdaError> nd
     return registers;
 }
 
-Result<std::vector<ndsda::NodeMapPV>, ndsda::ndsdaError> ndsda::FileParser::parseNodeMapFile(
+Result<std::vector<std::shared_ptr<ndsda::NodeMapPV>>, ndsda::ndsdaError> ndsda::FileParser::parseNodeMapFile(
     const std::filesystem::path& nodeMapFile
 ) {
     boost::property_tree::ptree pt;
@@ -107,24 +108,39 @@ Result<std::vector<ndsda::NodeMapPV>, ndsda::ndsdaError> ndsda::FileParser::pars
     auto pvMap = nodeMap->get_child_optional("ndsda:PVMap");
     if (!pvMap) return ndsda::ndsdaError("Invalid node map file: Missing PVMap element.");
 
-    std::vector<ndsda::NodeMapPV> nodeMapPVs;
+    std::vector<std::shared_ptr<ndsda::NodeMapPV>> nodeMapPVs;
     for (auto& pv : pvMap.get()) {
         if (pv.first != "ndsda:PV")
             return ndsda::ndsdaError("Invalid node map file: Unexpected element '" + pv.first + "' in PVMap");
 
-        if (auto res = parsePV(pv.second)) {
-            nodeMapPVs.push_back(res.assume_value());
-        } else {
-            return res.assume_error();
-        }
+        BOOST_OUTCOME_TRY(auto res, parsePV(pv.second));
+        nodeMapPVs.push_back(std::make_shared<NodeMapPV>(std::move(res)));
     }
 
     return nodeMapPVs;
 }
 
-static const std::set<std::string> VALID_PV_TYPES = {
-    "int32", "int64", "float", "double", "vector(int8)", "vector(uint8)", "vector(int16)", "vector(uint16)", "vector(int32)", "vector(uint32)", "vector(int64)", "vector(bool)", "vector(float)", "vector(double)", "string"
+// clang-format off
+using PTE = ndsda::PVTypeEnum;
+static const std::map<std::string, PTE> PV_TYPE_STRMAP = {
+    {"int32",          PTE::INT32},
+    {"int64",          PTE::INT64},
+    {"float",          PTE::FLOAT},
+    {"double",         PTE::DOUBLE},
+    {"vector(int8)",   PTE::VEC_INT8},
+    {"vector(uint8)",  PTE::VEC_UINT8},
+    {"vector(int16)",  PTE::VEC_INT16},
+    {"vector(uint16)", PTE::VEC_UINT16},
+    {"vector(int32)",  PTE::VEC_INT32},
+    {"vector(uint32)", PTE::VEC_UINT32},
+    {"vector(int64)",  PTE::VEC_INT64},
+    {"vector(bool)",   PTE::VEC_BOOL},
+    {"vector(float)",  PTE::VEC_FLOAT},
+    {"vector(double)", PTE::VEC_DOUBLE},
+    {"string",         PTE::STRING},
 };
+// clang-format on
+
 static Result<ndsda::NodeMapPV, ndsda::ndsdaError> parsePV(const boost::property_tree::ptree& pvTree) {
     auto xmlattrs = pvTree.get_child_optional("<xmlattr>");
     if (!xmlattrs) return ndsda::ndsdaError("Invalid PV element: Missing XML attributes.");
@@ -143,21 +159,25 @@ static Result<ndsda::NodeMapPV, ndsda::ndsdaError> parsePV(const boost::property
     std::string readPV  = pvTree.get_optional<std::string>("ndsda:ReadPV").value_or(nameOpt.get() + ndsda::DAPV_GET_SUFFIX);
     std::string writePV = pvTree.get_optional<std::string>("ndsda:WritePV").value_or(nameOpt.get() + ndsda::DAPV_SET_SUFFIX);
 
-    // Check validity
     if (nElem < 1) {
         return ndsda::ndsdaError("Invalid PV element: 'nElem' must be greater or equal to 1. Current value: " + std::to_string(nElem));
     }
-    if (!VALID_PV_TYPES.contains(typeOpt.get())) {
+
+    ndsda::PVTypeEnum type;
+    try {
+        type = PV_TYPE_STRMAP.at(typeOpt.get());
+    } catch (const std::out_of_range&) {
         return ndsda::ndsdaError("Invalid PV element: Unsupported 'type' attribute value: " + typeOpt.get());
     }
 
     return ndsda::NodeMapPV{
         .name             = nameOpt.get(),
         .reg              = registerOpt.get(),
-        .type             = typeOpt.get(),
+        .type             = type,
         .approximateFloat = roundFloats,
         .nElem            = static_cast<size_t>(nElem),
         .readPV           = readPV,
-        .writePV          = writePV
+        .writePV          = writePV,
+        .memoryElement    = nullptr
     };
 }

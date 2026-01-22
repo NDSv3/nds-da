@@ -10,6 +10,38 @@
 
 namespace ndsda {
 
+// clang-format off
+template <typename T>
+concept PVScalarType = (
+    std::same_as<T, std::int32_t> || std::same_as<T, std::int64_t> ||
+    std::same_as<T, float>        || std::same_as<T, double>       ||
+    std::same_as<T, std::string> );
+
+template <typename T>
+concept PVVectorType = (
+    std::same_as<T, std::vector<bool>>          ||
+    std::same_as<T, std::vector<std::uint8_t>>  || std::same_as<T, std::vector<std::uint16_t>> ||
+    std::same_as<T, std::vector<std::uint32_t>> ||
+    std::same_as<T, std::vector<std::int8_t>>   || std::same_as<T, std::vector<std::int16_t>>  ||
+    std::same_as<T, std::vector<std::int32_t>>  || std::same_as<T, std::vector<std::int64_t>>  ||
+    std::same_as<T, std::vector<float>>         || std::same_as<T, std::vector<double>> );
+
+enum class PVTypeEnum {
+    INT32, INT64, FLOAT, DOUBLE, STRING,
+    VEC_BOOL, VEC_UINT8, VEC_UINT16, VEC_UINT32,
+    VEC_INT8, VEC_INT16, VEC_INT32, VEC_INT64,
+    VEC_FLOAT, VEC_DOUBLE
+};
+// clang-format on
+
+constexpr bool pvTypeEnum_isScalar(PVTypeEnum type) {
+    return (type == PVTypeEnum::INT32 || type == PVTypeEnum::INT64 || type == PVTypeEnum::FLOAT || type == PVTypeEnum::DOUBLE || type == PVTypeEnum::STRING);
+}
+
+template <typename T>
+concept PVDataType = (PVScalarType<T> || PVVectorType<T>);
+// clang-format on
+
 template <typename T, typename E>
 using Result = boost::outcome_v2::result<T, E>;
 
@@ -27,47 +59,18 @@ static std::string generateName(const std::string& baseName) {
     else
         return baseName;
 }
-static std::string generateWritePV(const std::string& baseName) {
-    return generateName(baseName) + DAPV_SET_SUFFIX;
-}
-static std::string generateReadPV(const std::string& baseName) {
-    return generateName(baseName) + DAPV_GET_SUFFIX;
-}
 
 struct ndsdaError : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
-struct NodeMapPV {
-    std::string name;
-    std::string reg;
-    std::string type;
-    bool approximateFloat = false;
-    size_t nElem          = 1;
-    std::string readPV;
-    std::string writePV;
-
-    bool operator==(const NodeMapPV& other) const {
-        return (this->name == other.name) &&
-               (this->reg == other.reg) &&
-               (this->type == other.type) &&
-               (this->approximateFloat == other.approximateFloat) &&
-               (this->nElem == other.nElem) &&
-               (this->readPV == other.readPV) &&
-               (this->writePV == other.writePV);
-    }
-};
-
-// TODO: Extract PV name generation logic to allow parsing
 struct MemoryElement {
-    std::string name, readPV, writePV;
+    std::string name;
     size_t fracBits;
     bool isSigned;
 
     MemoryElement(const std::string& name, size_t fracBits = 0, bool isSigned = false)
         : name(generateName(name)),
-          readPV(generateReadPV(name)),
-          writePV(generateWritePV(name)),
           fracBits(fracBits),
           isSigned(isSigned) {};
 
@@ -95,7 +98,7 @@ public:
             return false;
         }
         const RegisterElement& otherReg = static_cast<const RegisterElement&>(other);
-        return (this->name == otherReg.name) && (this->readPV == otherReg.readPV) && (this->writePV == otherReg.writePV) && (this->fracBits == otherReg.fracBits) && (this->isSigned == otherReg.isSigned);
+        return (this->name == otherReg.name) && (this->fracBits == otherReg.fracBits) && (this->isSigned == otherReg.isSigned);
     }
 };
 
@@ -120,12 +123,31 @@ struct OneDElement : MemoryElement {
         }
         const OneDElement& otherOneD = static_cast<const OneDElement&>(other);
         return (this->name == otherOneD.name) &&
-               (this->readPV == otherOneD.readPV) &&
-               (this->writePV == otherOneD.writePV) &&
                (this->elements == otherOneD.elements) &&
                (this->elementSize == otherOneD.elementSize) &&
                (this->fracBits == otherOneD.fracBits) &&
                (this->isSigned == otherOneD.isSigned);
+    }
+};
+
+struct NodeMapPV {
+    std::string name;
+    std::string reg;
+    ndsda::PVTypeEnum type;
+    bool approximateFloat = false;
+    size_t nElem          = 1;
+    std::string readPV;
+    std::string writePV;
+    std::unique_ptr<MemoryElement> memoryElement;  // Deletes copy constructor
+
+    bool operator==(const NodeMapPV& other) const {
+        return (this->name == other.name) &&
+               (this->reg == other.reg) &&
+               (this->type == other.type) &&
+               (this->approximateFloat == other.approximateFloat) &&
+               (this->nElem == other.nElem) &&
+               (this->readPV == other.readPV) &&
+               (this->writePV == other.writePV);
     }
 };
 

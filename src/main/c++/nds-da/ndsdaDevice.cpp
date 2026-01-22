@@ -1,10 +1,13 @@
 #include "ndsdaDevice.hpp"
-#include <cstdint>
 #include <ctime>
+#include <optional>
 #include <utility>
+#include <boost/outcome/try.hpp>
+
 #include "nds3/definitions.h"
 #include "nds3/exceptions.h"
 #include "ndsdaBridge.hpp"
+#include "ndsdaCommon.hpp"
 #include "ndsdaFileParser.hpp"
 
 #define BIND_DELEGATEIN(func) (std::bind(&func, this, std::placeholders::_1, std::placeholders::_2))
@@ -18,9 +21,6 @@
 
 using ndsda::Device;
 using ndsda::Result;
-
-template <>
-void Device::addScalarPV<uint32_t>(const std::shared_ptr<ndsda::MemoryElement>& e);
 
 Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
     : deviceName(deviceName),
@@ -38,83 +38,116 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
         throw nds::NdsError(r.assume_error().what());
     }
 
-    deviceAliasPV.setValue(deviceAlias);
-    deviceMapFilePV.setValue(deviceMapFile);
-    memoryMapFilePV.setValue(memoryMapFile);
-    nodeMapFilePV.setValue(nodeMapFile);
-
-    rootNode.addChild(deviceAliasPV);
-    rootNode.addChild(deviceMapFilePV);
-    rootNode.addChild(memoryMapFilePV);
-    rootNode.addChild(nodeMapFilePV);
-
-    std::vector<std::shared_ptr<ndsda::MemoryElement>> elements;
-    if (auto r = FileParser::parseMemoryMapFile(this->memoryMapFile)) {
-        elements = std::move(r.assume_value());
-    } else {
-        throw nds::NdsError(r.assume_error().what());
+    std::map<nds::PVVariableIn<std::string>*, std::string&> infoPVs = {
+        {&deviceAliasPV, deviceAlias},
+        {&deviceMapFilePV, deviceMapFile},
+        {&memoryMapFilePV, memoryMapFile},
+        {&nodeMapFilePV, nodeMapFile}
+    };
+    for (auto& [pv, val] : infoPVs) {
+        pv->setValue(val);
+        rootNode.addChild(*pv);
     }
 
-    std::vector<NodeMapPV> nodeMapPVs;
+    std::vector<std::shared_ptr<ndsda::NodeMapPV>> nodeMapPVsResult;
     if (auto r = FileParser::parseNodeMapFile(nodeMapFile)) {
-        nodeMapPVs = std::move(r.assume_value());
+        nodeMapPVsResult = std::move(r.assume_value());
     } else {
         throw nds::NdsError(r.assume_error().what());
     }
 
-    daBridge = std::make_unique<DABridge>(deviceMapFile, deviceAlias, elements);
+    auto mem = FileParser::parseMemoryMapFile(this->memoryMapFile);
+    if (!mem) {
+        throw nds::NdsError(mem.assume_error().what());
+    }
+
+    auto r = mergeMapElements(mem.assume_value(), nodeMapPVsResult);  // mem is moved from
+    if (r) {
+        throw nds::NdsError(r->what());
+    }
+
+    daBridge = std::make_unique<DABridge>(deviceMapFile, deviceAlias, nodeMapPVsResult);
 
     rootNode.initialize(this, factory);
 }
 
 Device::~Device() {}
 
-template <typename T>
-void Device::addScalarPV(const std::shared_ptr<ndsda::MemoryElement>& e) {
-    static_assert(PVScalarType<T>, "This type is not supported for scalar PVs");
+std::optional<ndsda::ndsdaError> Device::mergeMapElements(
+    std::vector<std::unique_ptr<ndsda::MemoryElement>>& memoryElements,
+    std::vector<std::shared_ptr<ndsda::NodeMapPV>>& nodeMapPVs
+) {
+    for (auto& pv : nodeMapPVs) {
+        // Search the PV register in the memory elements
+        auto reg = std::find_if(
+            memoryElements.begin(), memoryElements.end(),
+            [&pv](const std::unique_ptr<ndsda::MemoryElement>& element) {
+                return pv->reg == element->name;
+            }
+        );
+        if (reg == memoryElements.end())
+            return ndsda::ndsdaError("Invalid register '" + pv->reg + "' for PV '" + pv->name + "'");
 
-    const auto readLambda = [this, e](timespec* ts, T* value) {
-        clock_gettime(CLOCK_REALTIME, ts);
-        *value = this->daBridge->readRegister<T>(e->readPV);
-    };
-    const auto writeLambda = [this, e](const timespec& ts, const T& value) {
-        (void)ts;  // TODO: Research why ts is unused
-        this->daBridge->writeRegister<T>(e->writePV, value);
-    };
+        // Store MemoryElement in PV. Destroys the memoryElements vector
+        pv->memoryElement = std::move(*reg);
 
-    rootNode.addChild(nds::PVDelegateIn<T>(e->readPV, readLambda));
-    rootNode.addChild(nds::PVDelegateOut<T>(e->writePV, writeLambda));
+        auto r = this->generatePVs(*pv);
+        if (r) return r;
+    }
+
+    return std::nullopt;  // OK
 }
 
-// TODO: What to do with uint32_t? NDS does not support unsigned PVs
-template <>
-void Device::addScalarPV<uint32_t>(const std::shared_ptr<ndsda::MemoryElement>& e) {
-    const auto readLambda = [this, e](timespec* ts, int32_t* value) {
-        clock_gettime(CLOCK_REALTIME, ts);
-        *value = std::bit_cast<int32_t>(this->daBridge->readRegister<uint32_t>(e->readPV));
-    };
-    const auto writeLambda = [this, e](const timespec& ts, const int32_t& value) {
-        (void)ts;  // TODO: Research why ts is unused
-        this->daBridge->writeRegister<uint32_t>(e->writePV, std::bit_cast<int32_t>(value));
-    };
-
-    rootNode.addChild(nds::PVDelegateIn<int32_t>(e->readPV, readLambda));
-    rootNode.addChild(nds::PVDelegateOut<int32_t>(e->writePV, writeLambda));
-}
-
-template <typename T>
-void Device::addOneDPV(const std::shared_ptr<ndsda::MemoryElement>& e) {
-    const auto readLambda = [this, e](timespec* ts, std::vector<T>* value) {
-        clock_gettime(CLOCK_REALTIME, ts);
-        *value = this->daBridge->readOneDRegister<T>(e->readPV);
-    };
-    const auto writeLambda = [this, e](const timespec& ts, const std::vector<T>& value) {
-        (void)ts;
-        this->daBridge->writeOneDRegister<T>(e->writePV, value);
-    };
-
-    rootNode.addChild(nds::PVDelegateIn<std::vector<T>>(e->readPV, readLambda));
-    rootNode.addChild(nds::PVDelegateOut<std::vector<T>>(e->writePV, writeLambda));
+std::optional<ndsda::ndsdaError> Device::generatePVs(const ndsda::NodeMapPV& nodeMapPV) {
+    // TODO:
+    return std::nullopt;  // OK
 }
 
 NDS_DEFINE_DRIVER(DADevice, Device)
+
+// template <typename T>
+// void Device::addScalarPV(const ndsda::NodeMapPV& pv) {
+//     static_assert(PVScalarType<T>, "This type is not supported for scalar PVs");
+
+//     const auto readLambda = [this, pv](timespec* ts, T* value) {
+//         clock_gettime(CLOCK_REALTIME, ts);
+//         *value = this->daBridge->readRegister<T>(pv.readPV);
+//     };
+//     const auto writeLambda = [this, pv](const timespec& ts, const T& value) {
+//         (void)ts;  // TODO: Research why ts is unused
+//         this->daBridge->writeRegister<T>(pv.writePV, value);
+//     };
+
+//     rootNode.addChild(nds::PVDelegateIn<T>(pv.readPV, readLambda));
+//     rootNode.addChild(nds::PVDelegateOut<T>(pv.writePV, writeLambda));
+// }
+
+// template <>
+// void Device::addScalarPV<uint32_t>(const ndsda::NodeMapPV& pv) {
+//     const auto readLambda = [this, pv](timespec* ts, int32_t* value) {
+//         clock_gettime(CLOCK_REALTIME, ts);
+//         *value = std::bit_cast<int32_t>(this->daBridge->readRegister<uint32_t>(pv.readPV));
+//     };
+//     const auto writeLambda = [this, pv](const timespec& ts, const int32_t& value) {
+//         (void)ts;  // TODO: Research why ts is unused
+//         this->daBridge->writeRegister<uint32_t>(pv.writePV, std::bit_cast<int32_t>(value));
+//     };
+
+//     rootNode.addChild(nds::PVDelegateIn<int32_t>(pv.readPV, readLambda));
+//     rootNode.addChild(nds::PVDelegateOut<int32_t>(pv.writePV, writeLambda));
+// }
+
+// template <typename T>
+// void Device::addOneDPV(const ndsda::NodeMapPV& pv) {
+//     const auto readLambda = [this, pv](timespec* ts, std::vector<T>* value) {
+//         clock_gettime(CLOCK_REALTIME, ts);
+//         *value = this->daBridge->readOneDRegister<T>(pv.readPV);
+//     };
+//     const auto writeLambda = [this, pv](const timespec& ts, const std::vector<T>& value) {
+//         (void)ts;
+//         this->daBridge->writeOneDRegister<T>(pv.writePV, value);
+//     };
+
+//     rootNode.addChild(nds::PVDelegateIn<std::vector<T>>(pv.readPV, readLambda));
+//     rootNode.addChild(nds::PVDelegateOut<std::vector<T>>(pv.writePV, writeLambda));
+// }

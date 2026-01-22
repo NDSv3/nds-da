@@ -12,7 +12,7 @@ concept Integer32 = std::same_as<T, uint32_t> || std::same_as<T, int32_t>;
 
 class DABridge {
 public:
-    DABridge(std::string dmapFilePath, std::string deviceName, std::vector<std::shared_ptr<MemoryElement>> elements);
+    DABridge(std::string dmapFilePath, std::string deviceName, const std::vector<std::shared_ptr<NodeMapPV>>& elements);
     ~DABridge();
 
     template <Integer32 T>
@@ -32,7 +32,7 @@ public:
 private:
     ChimeraTK::Device daDevice;
 
-    std::map<std::string, std::shared_ptr<MemoryElement>> readPVMap, writePVMap;
+    std::map<std::string, std::shared_ptr<NodeMapPV>> readPVMap, writePVMap;
 };
 
 }  // namespace ndsda
