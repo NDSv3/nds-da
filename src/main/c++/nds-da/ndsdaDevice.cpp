@@ -3,6 +3,7 @@
 #include <optional>
 #include <utility>
 #include <boost/outcome/try.hpp>
+#include <variant>
 
 #include "nds3/definitions.h"
 #include "nds3/exceptions.h"
@@ -99,7 +100,20 @@ std::optional<ndsda::ndsdaError> Device::mergeMapElements(
 }
 
 std::optional<ndsda::ndsdaError> Device::generatePVs(const ndsda::NodeMapPV& nodeMapPV) {
-    // TODO:
+    auto readLambda = [&b = this->daBridge, &pv = nodeMapPV]<PVDataType T>(timespec* ts, T* value) {
+        b->readPV(ts, value, pv);
+    };
+    auto writeLambda = [&b = this->daBridge, &pv = nodeMapPV]<PVDataType T>(timespec ts, T value) {
+        b->writePV(ts, value, pv);
+    };
+
+    // Templated lambda, called by visitor pattern with the PV type
+    auto generatePVLambda = [&rootNode = this->rootNode, &nodeMapPV, readLambda, writeLambda]<PVDataType T>(std::type_identity<T>) {
+        rootNode.addChild(nds::PVDelegateIn<T>(nodeMapPV.readPV, readLambda));
+        rootNode.addChild(nds::PVDelegateOut<T>(nodeMapPV.writePV, writeLambda));
+    };
+    visitPVType(nodeMapPV.type, generatePVLambda);
+
     return std::nullopt;  // OK
 }
 

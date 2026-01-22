@@ -5,6 +5,7 @@
 #include <string>
 #include <ChimeraTK/Device.h>
 #include <variant>
+#include <type_traits>
 
 #include <boost/outcome/result.hpp>
 
@@ -32,6 +33,27 @@ enum class PVTypeEnum {
     VEC_INT8, VEC_INT16, VEC_INT32, VEC_INT64,
     VEC_FLOAT, VEC_DOUBLE
 };
+
+template <typename V>
+void visitPVType(PVTypeEnum type, V&& visitor) {
+    switch (type) {
+        case PVTypeEnum::INT32:      visitor(std::type_identity<int32_t>{});               break;
+        case PVTypeEnum::INT64:      visitor(std::type_identity<int64_t>{});               break;
+        case PVTypeEnum::FLOAT:      visitor(std::type_identity<float>{});                 break;
+        case PVTypeEnum::DOUBLE:     visitor(std::type_identity<double>{});                break;
+        case PVTypeEnum::STRING:     visitor(std::type_identity<std::string>{});           break;
+        case PVTypeEnum::VEC_BOOL:   visitor(std::type_identity<std::vector<bool>>{});     break;
+        case PVTypeEnum::VEC_UINT8:  visitor(std::type_identity<std::vector<uint8_t>>{});  break;
+        case PVTypeEnum::VEC_UINT16: visitor(std::type_identity<std::vector<uint16_t>>{}); break;
+        case PVTypeEnum::VEC_UINT32: visitor(std::type_identity<std::vector<uint32_t>>{}); break;
+        case PVTypeEnum::VEC_INT8:   visitor(std::type_identity<std::vector<int8_t>>{});   break;
+        case PVTypeEnum::VEC_INT16:  visitor(std::type_identity<std::vector<int16_t>>{});  break;
+        case PVTypeEnum::VEC_INT32:  visitor(std::type_identity<std::vector<int32_t>>{});  break;
+        case PVTypeEnum::VEC_INT64:  visitor(std::type_identity<std::vector<int64_t>>{});  break;
+        case PVTypeEnum::VEC_FLOAT:  visitor(std::type_identity<std::vector<float>>{});    break;
+        case PVTypeEnum::VEC_DOUBLE: visitor(std::type_identity<std::vector<double>>{});   break;
+    }
+}
 // clang-format on
 
 constexpr bool pvTypeEnum_isScalar(PVTypeEnum type) {
