@@ -15,8 +15,7 @@ namespace ndsda {
 template <typename T>
 concept PVScalarType = (
     std::same_as<T, std::int32_t> || std::same_as<T, std::int64_t> ||
-    std::same_as<T, float>        || std::same_as<T, double>       ||
-    std::same_as<T, std::string> );
+    std::same_as<T, float>        || std::same_as<T, double> );
 
 template <typename T>
 concept PVVectorType = (
@@ -25,7 +24,8 @@ concept PVVectorType = (
     std::same_as<T, std::vector<std::uint32_t>> ||
     std::same_as<T, std::vector<std::int8_t>>   || std::same_as<T, std::vector<std::int16_t>>  ||
     std::same_as<T, std::vector<std::int32_t>>  || std::same_as<T, std::vector<std::int64_t>>  ||
-    std::same_as<T, std::vector<float>>         || std::same_as<T, std::vector<double>> );
+    std::same_as<T, std::vector<float>>         || std::same_as<T, std::vector<double>>        ||
+    std::same_as<T, std::string> );
 
 enum class PVTypeEnum {
     INT32, INT64, FLOAT, DOUBLE, STRING,
@@ -108,7 +108,7 @@ using DARegAccessorVariant = std::variant<
 
 struct RegisterElement : MemoryElement {
 public:
-    std::optional<DARegAccessorVariant> daAccessor;
+    mutable std::optional<DARegAccessorVariant> daAccessor;  // Lazy initialization
 
     RegisterElement(const std::string& name, size_t fracBits, bool isSigned)
         : MemoryElement(name, fracBits, isSigned), daAccessor(std::nullopt) {};
@@ -129,7 +129,7 @@ using DAOneDRegAccessorVariant = std::variant<
     ChimeraTK::OneDRegisterAccessor<int32_t>>;
 struct OneDElement : MemoryElement {
     size_t elements, elementSize;
-    std::optional<DAOneDRegAccessorVariant> daAccessor;
+    mutable std::optional<DAOneDRegAccessorVariant> daAccessor;  // Lazy initialization
 
     OneDElement(const std::string& name, size_t elements, size_t elementSize, size_t fracBits = 0, bool isSigned = false)
         : MemoryElement(name, fracBits, isSigned),
