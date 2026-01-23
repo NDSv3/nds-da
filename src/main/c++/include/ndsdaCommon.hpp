@@ -75,7 +75,7 @@ enum class MemoryElementType {
     ONE_D
 };
 
-static std::string generateName(const std::string& baseName) {
+const inline std::string generateRegName(const std::string& baseName) {
     if (baseName.size() > 0 && baseName[0] == '.')
         return baseName.substr(1);
     else
@@ -92,7 +92,7 @@ struct MemoryElement {
     bool isSigned;
 
     MemoryElement(const std::string& name, size_t fracBits = 0, bool isSigned = false)
-        : name(generateName(name)),
+        : name(generateRegName(name)),
           fracBits(fracBits),
           isSigned(isSigned) {};
 
@@ -156,11 +156,21 @@ struct NodeMapPV {
     std::string name;
     std::string reg;
     ndsda::PVTypeEnum type;
-    bool approximateFloat = false;
-    size_t nElem          = 1;
+    bool approximateFloat;
+    size_t nElem;
     std::string readPV;
     std::string writePV;
     std::unique_ptr<MemoryElement> memoryElement;  // Deletes copy constructor
+
+    NodeMapPV(const std::string& name, const std::string& reg, ndsda::PVTypeEnum type, bool approximateFloat, const std::string& readPV, const std::string& writePV, size_t nElem = 1, std::unique_ptr<MemoryElement> memoryElement = nullptr)
+        : name(name),
+          reg(generateRegName(reg)),
+          type(type),
+          approximateFloat(approximateFloat),
+          nElem(nElem),
+          readPV(readPV),
+          writePV(writePV),
+          memoryElement(std::move(memoryElement)) {}
 
     bool operator==(const NodeMapPV& other) const {
         return (this->name == other.name) &&

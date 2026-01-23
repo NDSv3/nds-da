@@ -12,7 +12,7 @@
 
 using ndsda::Result;
 
-static Result<ndsda::NodeMapPV, ndsda::ndsdaError> parsePV(const boost::property_tree::ptree& pvTree);
+static Result<std::shared_ptr<ndsda::NodeMapPV>, ndsda::ndsdaError> parsePV(const boost::property_tree::ptree& pvTree);
 
 Result<std::string, ndsda::ndsdaError> ndsda::FileParser::getMemoryMapFile(
     const std::filesystem::path& deviceMapFile,
@@ -114,7 +114,7 @@ Result<std::vector<std::shared_ptr<ndsda::NodeMapPV>>, ndsda::ndsdaError> ndsda:
             return ndsda::ndsdaError("Invalid node map file: Unexpected element '" + pv.first + "' in PVMap");
 
         BOOST_OUTCOME_TRY(auto res, parsePV(pv.second));
-        nodeMapPVs.push_back(std::make_shared<NodeMapPV>(std::move(res)));
+        nodeMapPVs.push_back(res);
     }
 
     return nodeMapPVs;
@@ -141,7 +141,7 @@ static const std::map<std::string, PTE> PV_TYPE_STRMAP = {
 };
 // clang-format on
 
-static Result<ndsda::NodeMapPV, ndsda::ndsdaError> parsePV(const boost::property_tree::ptree& pvTree) {
+static Result<std::shared_ptr<ndsda::NodeMapPV>, ndsda::ndsdaError> parsePV(const boost::property_tree::ptree& pvTree) {
     auto xmlattrs = pvTree.get_child_optional("<xmlattr>");
     if (!xmlattrs) return ndsda::ndsdaError("Invalid PV element: Missing XML attributes.");
 
@@ -170,14 +170,5 @@ static Result<ndsda::NodeMapPV, ndsda::ndsdaError> parsePV(const boost::property
         return ndsda::ndsdaError("Invalid PV element: Unsupported 'type' attribute value: " + typeOpt.get());
     }
 
-    return ndsda::NodeMapPV{
-        .name             = nameOpt.get(),
-        .reg              = registerOpt.get(),
-        .type             = type,
-        .approximateFloat = roundFloats,
-        .nElem            = static_cast<size_t>(nElem),
-        .readPV           = readPV,
-        .writePV          = writePV,
-        .memoryElement    = nullptr
-    };
+    return std::make_shared<ndsda::NodeMapPV>(nameOpt.get(), registerOpt.get(), type, roundFloats, readPV, writePV, static_cast<size_t>(nElem));
 }
