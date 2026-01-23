@@ -83,13 +83,14 @@ std::optional<ndsda::ndsdaError> Device::mergeMapElements(
         auto reg = std::find_if(
             memoryElements.begin(), memoryElements.end(),
             [&pv](const std::unique_ptr<ndsda::MemoryElement>& element) {
-                return pv->reg == element->name;
+                // Once an element is found, it is changed for nullptr, so check that it is not null before
+                return element && (pv->reg == element->name);
             }
         );
         if (reg == memoryElements.end())
             return ndsda::ndsdaError("Invalid register '" + pv->reg + "' for PV '" + pv->name + "'");
 
-        // Store MemoryElement in PV. Destroys the memoryElements vector
+        // Store MemoryElement in PV. Leaves nullptr in vector
         pv->memoryElement = std::move(*reg);
 
         auto r = this->generatePVs(*pv);
