@@ -46,7 +46,7 @@ TEST(FileParser, memoryMap_validFile_correctElements) {
     auto elements = ndsda::FileParser::parseMemoryMapFile(NDSDA_TEST_MMAPFILE);
     ASSERT_TRUE(elements.has_value()) << "Failed to parse valid memory map file: " << elements.assume_error().what();
 
-    std::vector<std::shared_ptr<ndsda::MemoryElement>> vec = elements.assume_value();
+    std::vector<std::unique_ptr<ndsda::MemoryElement>> vec = std::move(elements.assume_value());
     for (size_t i = 0; i < expectedMemoryElements.size(); ++i) {
         ASSERT_EQ(*vec[i], *expectedMemoryElements[i])
             << "Parsed element does not match expected element:\n"
@@ -85,34 +85,56 @@ TEST(FileParser, nodeMapFile_validFile_correctPVs) {
 
     auto& pvsVector = pvs.assume_value();
     for (size_t i = 0; i < expectedNodeMapPVs.size(); ++i) {
-        ASSERT_EQ(pvsVector[i], expectedNodeMapPVs[i])
+        ASSERT_EQ(*pvsVector[i], *expectedNodeMapPVs[i])
             << "Parsed PV does not match expected PV:\n"
-            << "Parsed: " << memoryMapPV_toString(pvsVector[i]) << "\n"
-            << "Expected: " << memoryMapPV_toString(expectedNodeMapPVs[i]) << "\n";
+            << "Parsed: " << memoryMapPV_toString(*pvsVector[i]) << "\n"
+            << "Expected: " << memoryMapPV_toString(*expectedNodeMapPVs[i]) << "\n";
     }
 }
 
 static const std::string memoryElement_toString(const ndsda::MemoryElement& element) {
-    std::string repr = "Element Name: " + element.name + "\n";
-    repr += "  Read PV: " + element.readPV + "\n";
-    repr += "  Write PV: " + element.writePV + "\n";
+    std::string repr = element.name + "\n";
 
     if (element.getType() == ndsda::MemoryElementType::SCALAR) {
-        repr += "  Type: Scalar Register";
+        repr += "  Type: Scalar Register\n";
     } else if (element.getType() == ndsda::MemoryElementType::ONE_D) {
         const ndsda::OneDElement& oneDElement = static_cast<const ndsda::OneDElement&>(element);
         repr += "  Type: One-D Register\n";
         repr += "  Elements: " + std::to_string(oneDElement.elements) + "\n";
-        repr += "  Element Size: " + std::to_string(oneDElement.elementSize) + " bytes";
+        repr += "  Element Size: " + std::to_string(oneDElement.elementSize) + " bytes\n";
     }
+    repr += "  Fractional Bits: " + std::to_string(element.fracBits) + "\n";
+    repr += "  Signed: " + std::string(element.isSigned ? "true" : "false") + "\n";
 
     return repr;
 }
 
+static const inline std::string typeEnumToString(ndsda::PVTypeEnum type) {
+    using E = ndsda::PVTypeEnum;
+    // clang-format off
+    switch (type) {
+        case E::INT32:      return "int32";
+        case E::INT64:      return "int64";
+        case E::FLOAT:      return "float";
+        case E::DOUBLE:     return "double";
+        case E::STRING:     return "string";
+        case E::VEC_BOOL:   return "Vec<bool>";
+        case E::VEC_UINT8:  return "Vec<uint8>";
+        case E::VEC_UINT16: return "Vec<uint16>";
+        case E::VEC_UINT32: return "Vec<uint32>";
+        case E::VEC_INT8:   return "Vec<int8>";
+        case E::VEC_INT16:  return "Vec<int16>";
+        case E::VEC_INT32:  return "Vec<int32>";
+        case E::VEC_INT64:  return "Vec<int64>";
+        case E::VEC_FLOAT:  return "Vec<float>";
+        case E::VEC_DOUBLE: return "Vec<double>";
+    }
+    // clang-format on
+}
 static const std::string memoryMapPV_toString(const ndsda::NodeMapPV& nodeMapPv) {
     std::string repr = "PV Name: " + nodeMapPv.name + "\n";
     repr += "  Address: " + nodeMapPv.reg + "\n";
-    repr += "  Type: " + nodeMapPv.type + "\n";
+    repr += "  Type: " + typeEnumToString(nodeMapPv.type) + "\n";
     repr += "  Approximate Float: " + std::string(nodeMapPv.approximateFloat ? "true" : "false") + "\n";
     repr += "  Number of Elements: " + std::to_string(nodeMapPv.nElem) + "\n";
     repr += "  Read PV: " + nodeMapPv.readPV + "\n";
