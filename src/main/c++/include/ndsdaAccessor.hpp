@@ -10,7 +10,7 @@ concept DARegisterType = std::same_as<T, uint32_t> || std::same_as<T, int32_t>;
 
 class DAAccessor {
 public:
-    DAAccessor(std::string dmapFilePath, std::string deviceName, const std::vector<std::shared_ptr<NodeMapPV>>& elements);
+    DAAccessor(std::string dmapFilePath, std::string deviceName);
     ~DAAccessor();
 
     template <DARegisterType RegisterType>
@@ -27,7 +27,6 @@ public:
 
 private:
     ChimeraTK::Device daDevice;
-    std::map<std::string, std::shared_ptr<NodeMapPV>> readPVMap, writePVMap;
 };
 
 }  // namespace ndsda

@@ -4,23 +4,12 @@
 using nds::NdsError;
 using ndsda::DAAccessor, ndsda::Result, ndsda::ndsdaError, ndsda::DARegisterType;
 
-DAAccessor::DAAccessor(std::string dmapFilePath, std::string deviceName, const std::vector<std::shared_ptr<NodeMapPV>>& elements) {
+DAAccessor::DAAccessor(std::string dmapFilePath, std::string deviceName) {
     try {
         ChimeraTK::setDMapFilePath(dmapFilePath);
         daDevice.open(deviceName);
     } catch (const ChimeraTK::logic_error& e) {
         throw NdsError("Failed to initialize DeviceAccess: " + std::string(e.what()));
-    }
-
-    for (auto& ptr : elements) {
-        if (!ptr) {
-            throw NdsError("Null NodeMapPV provided to DAAccessor");
-        }
-        if (!ptr->memoryElement) {
-            throw NdsError("NodeMapPV " + ptr->name + " has no associated MemoryElement");
-        }
-        readPVMap.emplace(ptr->readPV, ptr);
-        writePVMap.emplace(ptr->writePV, ptr);
     }
 }
 

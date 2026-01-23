@@ -67,7 +67,7 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
         throw nds::NdsError(r->what());
     }
 
-    daBridge = std::make_unique<DABridge>(deviceMapFile, deviceAlias, nodeMapPVsResult);
+    daBridge = std::make_unique<DABridge>(deviceMapFile, deviceAlias);
 
     rootNode.initialize(this, factory);
 }

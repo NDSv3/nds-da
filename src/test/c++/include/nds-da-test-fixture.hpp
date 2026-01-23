@@ -91,12 +91,11 @@ protected:
 
 class ndsDABridgeFixture : public testing::Test {
 protected:
+    ndsda::DABridge bridge = {NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS};
+};
+
+class ndsDAAccessorFixture : public testing::Test {
+protected:
     std::unique_ptr<ndsda::DABridge> bridge;
-
-    void SetUp() override {
-        bridge = std::make_unique<ndsda::DABridge>(NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS, expectedNodeMapPVs);
-    }
-
-    void TearDown() override {}
 };
 #endif  //! NDS_DA_TEST_FIXTURE

@@ -10,7 +10,7 @@
 
 using ndsda::DABridge;
 
-DABridge::DABridge(std::string dmapFilePath, std::string deviceName, const std::vector<std::shared_ptr<NodeMapPV>>& elements) : daAccessor(std::make_unique<ndsda::DAAccessor>(dmapFilePath, deviceName, elements)) {}
+DABridge::DABridge(std::string dmapFilePath, std::string deviceName) : daAccessor(std::make_unique<ndsda::DAAccessor>(dmapFilePath, deviceName)) {}
 
 template <ndsda::PVDataType PVType>
 void DABridge::readPV(timespec* ts, PVType* value, const ndsda::NodeMapPV& pv) {
