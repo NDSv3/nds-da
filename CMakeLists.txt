@@ -16,6 +16,7 @@ add_library(nds-da SHARED
     "src/main/c++/nds-da/ndsdaDevice.cpp"
     "src/main/c++/nds-da/ndsdaFileParser.cpp"
     "src/main/c++/nds-da/ndsdaBridge.cpp"
+    "src/main/c++/nds-da/ndsdaAccessor.cpp"
 )
 target_include_directories(nds-da PUBLIC
     "src/main/c++/include"
