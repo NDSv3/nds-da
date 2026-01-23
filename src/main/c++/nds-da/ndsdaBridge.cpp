@@ -2,15 +2,10 @@
 #include <ChimeraTK/Exception.h>
 #include <ChimeraTK/OneDRegisterAccessor.h>
 #include <ctime>
-#include <memory>
 
-#include "nds3/exceptions.h"
-#include "ndsdaAccessor.hpp"
 #include "ndsdaCommon.hpp"
 
 using ndsda::DABridge;
-
-DABridge::DABridge(std::string dmapFilePath, std::string deviceName) : daAccessor(std::make_unique<ndsda::DAAccessor>(dmapFilePath, deviceName)) {}
 
 template <ndsda::PVDataType PVType>
 void DABridge::readPV(timespec* ts, PVType* value, const ndsda::NodeMapPV& pv) {

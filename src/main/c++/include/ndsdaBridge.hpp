@@ -10,7 +10,7 @@ namespace ndsda {
 
 class DABridge {
 public:
-    DABridge(std::string dmapFilePath, std::string deviceName);
+    DABridge(std::unique_ptr<ndsda::DAAccessor> daAccessor) : daAccessor(std::move(daAccessor)) {};
 
     template <ndsda::PVDataType PVType>
     void readPV(timespec* ts, PVType* value, const NodeMapPV& pv);
