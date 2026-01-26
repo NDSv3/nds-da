@@ -91,11 +91,11 @@ protected:
 
 class ndsDABridgeFixture : public testing::Test {
 protected:
-    ndsda::DABridge bridge = {NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS};
+    ndsda::DABridge bridge{std::make_unique<ndsda::DAAccessor>(NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS)};
 };
 
 class ndsDAAccessorFixture : public testing::Test {
 protected:
-    std::unique_ptr<ndsda::DABridge> bridge;
+    ndsda::DAAccessor accessor{NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS};
 };
 #endif  //! NDS_DA_TEST_FIXTURE

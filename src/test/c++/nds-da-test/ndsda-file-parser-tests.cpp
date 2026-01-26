@@ -46,7 +46,7 @@ TEST(FileParser, memoryMap_validFile_correctElements) {
     auto elements = ndsda::FileParser::parseMemoryMapFile(NDSDA_TEST_MMAPFILE);
     ASSERT_TRUE(elements.has_value()) << "Failed to parse valid memory map file: " << elements.assume_error().what();
 
-    std::vector<std::unique_ptr<ndsda::MemoryElement>> vec = std::move(elements.assume_value());
+    auto& vec = elements.assume_value();
     for (size_t i = 0; i < expectedMemoryElements.size(); ++i) {
         ASSERT_EQ(*vec[i], *expectedMemoryElements[i])
             << "Parsed element does not match expected element:\n"
