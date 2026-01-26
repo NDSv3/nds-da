@@ -12,16 +12,9 @@
 #include "ndsdaBridge.hpp"
 #include "ndsdaCommon.hpp"
 
-TEST(DABridge, ConstructorWithInvalidDmapFilePath) {
+TEST(DABridge, ConstructorNullptrError) {
     EXPECT_THROW(
-        ndsda::DABridge bridge("invalid/path.dmap", NDSDA_TEST_DEVICEALIAS),
-        nds::NdsError
-    );
-}
-
-TEST(DABridge, ConstructorWithInvalidDeviceName) {
-    EXPECT_THROW(
-        ndsda::DABridge bridge(NDSDA_TEST_DMAPFILE, "NONEXISTENT_DEVICE"),
-        nds::NdsError
+        ndsda::DABridge bridge(nullptr),
+        ndsda::ndsdaError
     );
 }

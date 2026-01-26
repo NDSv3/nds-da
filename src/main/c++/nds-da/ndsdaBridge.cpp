@@ -7,6 +7,13 @@
 
 using ndsda::DABridge;
 
+DABridge::DABridge(std::unique_ptr<ndsda::DAAccessor> daAccessor) {
+    if (!daAccessor) {
+        throw ndsda::ndsdaError("daAccessor cannot be nullptr");
+    }
+    this->daAccessor = std::move(daAccessor);
+}
+
 template <ndsda::PVDataType PVType>
 void DABridge::readPV(timespec* ts, PVType* value, const ndsda::NodeMapPV& pv) {
     using PTE = ndsda::PVTypeEnum;

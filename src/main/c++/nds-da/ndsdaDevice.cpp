@@ -67,7 +67,11 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
         throw nds::NdsError(r->what());
     }
 
-    daBridge = std::make_unique<DABridge>(std::make_unique<ndsda::DAAccessor>(deviceMapFile, deviceName));
+    try {
+        daBridge = std::make_unique<DABridge>(std::make_unique<ndsda::DAAccessor>(deviceMapFile, this->deviceAlias));
+    } catch (const ndsda::ndsdaError& e) {
+        throw nds::NdsError("Failed to create DAAccessor: " + std::string(e.what()));
+    }
 
     rootNode.initialize(this, factory);
 }
