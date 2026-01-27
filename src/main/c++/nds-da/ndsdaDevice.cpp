@@ -3,7 +3,6 @@
 #include <optional>
 #include <utility>
 #include <boost/outcome/try.hpp>
-#include <variant>
 
 #include "nds3/definitions.h"
 #include "nds3/exceptions.h"
@@ -123,50 +122,3 @@ std::optional<ndsda::ndsdaError> Device::generatePVs(const ndsda::NodeMapPV& nod
 }
 
 NDS_DEFINE_DRIVER(DADevice, Device)
-
-// template <typename T>
-// void Device::addScalarPV(const ndsda::NodeMapPV& pv) {
-//     static_assert(PVScalarType<T>, "This type is not supported for scalar PVs");
-
-//     const auto readLambda = [this, pv](timespec* ts, T* value) {
-//         clock_gettime(CLOCK_REALTIME, ts);
-//         *value = this->daBridge->readRegister<T>(pv.readPV);
-//     };
-//     const auto writeLambda = [this, pv](const timespec& ts, const T& value) {
-//         (void)ts;  // TODO: Research why ts is unused
-//         this->daBridge->writeRegister<T>(pv.writePV, value);
-//     };
-
-//     rootNode.addChild(nds::PVDelegateIn<T>(pv.readPV, readLambda));
-//     rootNode.addChild(nds::PVDelegateOut<T>(pv.writePV, writeLambda));
-// }
-
-// template <>
-// void Device::addScalarPV<uint32_t>(const ndsda::NodeMapPV& pv) {
-//     const auto readLambda = [this, pv](timespec* ts, int32_t* value) {
-//         clock_gettime(CLOCK_REALTIME, ts);
-//         *value = std::bit_cast<int32_t>(this->daBridge->readRegister<uint32_t>(pv.readPV));
-//     };
-//     const auto writeLambda = [this, pv](const timespec& ts, const int32_t& value) {
-//         (void)ts;  // TODO: Research why ts is unused
-//         this->daBridge->writeRegister<uint32_t>(pv.writePV, std::bit_cast<int32_t>(value));
-//     };
-
-//     rootNode.addChild(nds::PVDelegateIn<int32_t>(pv.readPV, readLambda));
-//     rootNode.addChild(nds::PVDelegateOut<int32_t>(pv.writePV, writeLambda));
-// }
-
-// template <typename T>
-// void Device::addOneDPV(const ndsda::NodeMapPV& pv) {
-//     const auto readLambda = [this, pv](timespec* ts, std::vector<T>* value) {
-//         clock_gettime(CLOCK_REALTIME, ts);
-//         *value = this->daBridge->readOneDRegister<T>(pv.readPV);
-//     };
-//     const auto writeLambda = [this, pv](const timespec& ts, const std::vector<T>& value) {
-//         (void)ts;
-//         this->daBridge->writeOneDRegister<T>(pv.writePV, value);
-//     };
-
-//     rootNode.addChild(nds::PVDelegateIn<std::vector<T>>(pv.readPV, readLambda));
-//     rootNode.addChild(nds::PVDelegateOut<std::vector<T>>(pv.writePV, writeLambda));
-// }
