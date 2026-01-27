@@ -70,9 +70,6 @@ constexpr bool pvTypeEnum_isScalar(PVTypeEnum type) {
     return (type == PVTypeEnum::INT32 || type == PVTypeEnum::INT64 || type == PVTypeEnum::FLOAT || type == PVTypeEnum::DOUBLE || type == PVTypeEnum::STRING);
 }
 
-template <typename T, typename E>
-using Result = boost::outcome_v2::result<T, E>;
-
 const std::string DAPV_GET_SUFFIX = "-Get";
 const std::string DAPV_SET_SUFFIX = "-Set";
 
@@ -188,6 +185,9 @@ struct NodeMapPV {
                (this->writePV == other.writePV);
     }
 };
+
+template <typename T, typename E = ndsdaError>
+using Result = boost::outcome_v2::result<T, E>;
 
 }  // namespace ndsda
 

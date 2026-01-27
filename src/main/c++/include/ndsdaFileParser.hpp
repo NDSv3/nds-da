@@ -9,16 +9,16 @@ namespace ndsda {
 
 namespace FileParser {
 
-Result<std::string, ndsdaError> getMemoryMapFile(
+Result<std::string> getMemoryMapFile(
     const std::filesystem::path& deviceMapFile,
     const std::string& deviceMapAlias
 );
 
-Result<std::vector<std::unique_ptr<MemoryElement>>, ndsdaError> parseMemoryMapFile(
+Result<std::vector<std::unique_ptr<MemoryElement>>> parseMemoryMapFile(
     const std::filesystem::path& memoryMapFile
 );
 
-Result<std::vector<std::shared_ptr<NodeMapPV>>, ndsdaError> parseNodeMapFile(
+Result<std::vector<std::shared_ptr<NodeMapPV>>> parseNodeMapFile(
     const std::filesystem::path& nodeMapFile
 );
 

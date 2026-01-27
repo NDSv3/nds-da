@@ -14,13 +14,13 @@ public:
     ~DAAccessor();
 
     template <DARegisterType RegisterType>
-    Result<RegisterType, ndsdaError> readRegister(const RegisterElement& registerElement);
+    Result<RegisterType> readRegister(const RegisterElement& registerElement);
 
     template <DARegisterType RegisterType>
     std::optional<ndsdaError> writeRegister(const RegisterElement& reg, RegisterType value);
 
     template <DARegisterType RegisterType>
-    Result<std::vector<RegisterType>, ndsdaError> readOneDRegister(const OneDElement& reg);
+    Result<std::vector<RegisterType>> readOneDRegister(const OneDElement& reg);
 
     template <DARegisterType RegisterType>
     std::optional<ndsdaError> writeOneDRegister(const OneDElement& reg, const std::vector<RegisterType>& values);

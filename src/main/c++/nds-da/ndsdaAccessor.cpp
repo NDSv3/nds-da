@@ -18,7 +18,7 @@ DAAccessor::~DAAccessor() {
 }
 
 template <DARegisterType RegisterType>
-Result<RegisterType, ndsdaError> DAAccessor::readRegister(const RegisterElement& reg) {
+Result<RegisterType> DAAccessor::readRegister(const RegisterElement& reg) {
     if (!reg.daAccessor) {
         reg.daAccessor.emplace(daDevice.getScalarRegisterAccessor<RegisterType>(reg.name));
     }
@@ -50,7 +50,7 @@ std::optional<ndsdaError> DAAccessor::writeRegister(const RegisterElement& reg, 
 }
 
 template <DARegisterType RegisterType>
-Result<std::vector<RegisterType>, ndsdaError> DAAccessor::readOneDRegister(const OneDElement& reg) {
+Result<std::vector<RegisterType>> DAAccessor::readOneDRegister(const OneDElement& reg) {
     if (!reg.daAccessor) {
         reg.daAccessor.emplace(daDevice.getOneDRegisterAccessor<RegisterType>(reg.name));
     }
@@ -86,14 +86,14 @@ std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement& reg, 
 }
 
 // Explicit template instantiations
-template Result<int32_t, ndsdaError> DAAccessor::readRegister(const RegisterElement&);
-template Result<uint32_t, ndsdaError> DAAccessor::readRegister(const RegisterElement& readPV);
+template Result<int32_t> DAAccessor::readRegister(const RegisterElement&);
+template Result<uint32_t> DAAccessor::readRegister(const RegisterElement& readPV);
 
 template std::optional<ndsdaError> DAAccessor::writeRegister(const RegisterElement&, int32_t);
 template std::optional<ndsdaError> DAAccessor::writeRegister(const RegisterElement& writePV, uint32_t value);
 
-template Result<std::vector<uint32_t>, ndsdaError> DAAccessor::readOneDRegister(const OneDElement& readPV);
-template Result<std::vector<int32_t>, ndsdaError> DAAccessor::readOneDRegister(const OneDElement&);
+template Result<std::vector<uint32_t>> DAAccessor::readOneDRegister(const OneDElement& readPV);
+template Result<std::vector<int32_t>> DAAccessor::readOneDRegister(const OneDElement&);
 
 template std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement&, const std::vector<int32_t>&);
 template std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement& writePV, const std::vector<uint32_t>& values);

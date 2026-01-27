@@ -12,9 +12,9 @@
 
 using ndsda::Result;
 
-static Result<std::shared_ptr<ndsda::NodeMapPV>, ndsda::ndsdaError> parsePV(const boost::property_tree::ptree& pvTree);
+static Result<std::shared_ptr<ndsda::NodeMapPV>> parsePV(const boost::property_tree::ptree& pvTree);
 
-Result<std::string, ndsda::ndsdaError> ndsda::FileParser::getMemoryMapFile(
+Result<std::string> ndsda::FileParser::getMemoryMapFile(
     const std::filesystem::path& deviceMapFile,
     const std::string& deviceMapAlias
 ) {
@@ -56,7 +56,7 @@ Result<std::string, ndsda::ndsdaError> ndsda::FileParser::getMemoryMapFile(
     return memoryMapFile.string();
 }
 
-Result<std::vector<std::unique_ptr<ndsda::MemoryElement>>, ndsda::ndsdaError> ndsda::FileParser::parseMemoryMapFile(const std::filesystem::path& memoryMapFile) {
+Result<std::vector<std::unique_ptr<ndsda::MemoryElement>>> ndsda::FileParser::parseMemoryMapFile(const std::filesystem::path& memoryMapFile) {
     std::vector<std::unique_ptr<ndsda::MemoryElement>> registers;
     std::ifstream memMap(memoryMapFile);
 
@@ -87,7 +87,7 @@ Result<std::vector<std::unique_ptr<ndsda::MemoryElement>>, ndsda::ndsdaError> nd
     return registers;
 }
 
-Result<std::vector<std::shared_ptr<ndsda::NodeMapPV>>, ndsda::ndsdaError> ndsda::FileParser::parseNodeMapFile(
+Result<std::vector<std::shared_ptr<ndsda::NodeMapPV>>> ndsda::FileParser::parseNodeMapFile(
     const std::filesystem::path& nodeMapFile
 ) {
     boost::property_tree::ptree pt;
@@ -141,7 +141,7 @@ static const std::map<std::string, PTE> PV_TYPE_STRMAP = {
 };
 // clang-format on
 
-static Result<std::shared_ptr<ndsda::NodeMapPV>, ndsda::ndsdaError> parsePV(const boost::property_tree::ptree& pvTree) {
+static Result<std::shared_ptr<ndsda::NodeMapPV>> parsePV(const boost::property_tree::ptree& pvTree) {
     auto xmlattrs = pvTree.get_child_optional("<xmlattr>");
     if (!xmlattrs) return ndsda::ndsdaError("Invalid PV element: Missing XML attributes.");
 
