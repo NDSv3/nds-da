@@ -3,7 +3,7 @@
 #include <nds3/ndsTestFactory.h>
 #include <ctime>
 #include <memory>
-#include "nds-da-test-fixture.hpp"
+#include "ndsda-test-common.hpp"
 #include "ndsdaFileParser.hpp"
 #include "ndsdaCommon.hpp"
 

@@ -1,0 +1,44 @@
+#ifndef NDS_DA_TEST_FIXTURE
+#define NDS_DA_TEST_FIXTURE
+
+#include <gtest/gtest.h>
+#include <string>
+#include "nds3/factory.h"
+#include "nds3/ndsTestInterface.h"
+#include "ndsdaBridge.hpp"
+
+#include "ndsda-test-constants.hpp"
+
+class ndsDABasicDeviceFixture : public testing::Test {
+protected:
+    nds::Factory factory;
+    nds::namedParameters_t params;
+    nds::tests::TestControlSystemInterfaceImpl* iface;
+
+    ndsDABasicDeviceFixture() : factory("test") {
+        params.emplace("DeviceAlias", NDSDA_TEST_DEVICEALIAS);
+        params.emplace("DeviceMapFile", NDSDA_TEST_DMAPFILE);
+        params.emplace("NodeMapFile", NDSDA_TEST_NODEMAPFILE);
+    }
+    // ~ndsDABasicDeviceFixture() override {}
+
+    void SetUp() override {
+        factory.createDevice("DADevice", "deviceAccessDevice", params);
+        iface = nds::tests::TestControlSystemInterfaceImpl::getInstance("deviceAccessDevice");
+        ASSERT_NE(iface, nullptr);
+    }
+    void TearDown() override {
+        factory.destroyDevice("deviceAccessDevice");
+    }
+};
+
+class ndsDABridgeFixture : public testing::Test {
+protected:
+    ndsda::DABridge bridge{std::make_unique<ndsda::DAAccessor>(NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS)};
+};
+
+class ndsDAAccessorFixture : public testing::Test {
+protected:
+    ndsda::DAAccessor accessor{NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS};
+};
+#endif  //! NDS_DA_TEST_FIXTURE

@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 #include <ctime>
-#include "nds-da-test-fixture.hpp"
+#include "ndsda-test-common.hpp"
 
 #include "ndsdaBridge.hpp"
 #include "ndsdaCommon.hpp"

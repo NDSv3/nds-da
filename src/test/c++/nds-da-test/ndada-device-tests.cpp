@@ -2,7 +2,7 @@
 #include <nds3/nds.h>
 #include <nds3/ndsTestFactory.h>
 #include <ctime>
-#include "nds-da-test-fixture.hpp"
+#include "ndsda-test-common.hpp"
 
 TEST(DeviceTests, MissingDeviceMap_Exception) {
     nds::Factory factory("test");

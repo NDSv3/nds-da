@@ -1,11 +1,10 @@
-#ifndef NDS_DA_TEST_FIXTURE
-#define NDS_DA_TEST_FIXTURE
+#ifndef NDSDA_TEST_CONSTANTS_H
+#define NDSDA_TEST_CONSTANTS_H
 
-#include <gtest/gtest.h>
+#include <memory>
 #include <string>
-#include "nds3/factory.h"
-#include "nds3/ndsTestInterface.h"
-#include "ndsdaBridge.hpp"
+#include <vector>
+
 #include "ndsdaCommon.hpp"
 
 using PTE = ndsda::PVTypeEnum;
@@ -49,53 +48,4 @@ static const std::vector<std::shared_ptr<ndsda::NodeMapPV>> expectedNodeMapPVs =
     )
 };
 
-class ndsDABasicDeviceFixture : public testing::Test {
-protected:
-    nds::Factory factory;
-    nds::namedParameters_t params;
-    nds::tests::TestControlSystemInterfaceImpl* iface;
-
-    ndsDABasicDeviceFixture() : factory("test") {
-        params.emplace("DeviceAlias", NDSDA_TEST_DEVICEALIAS);
-        params.emplace("DeviceMapFile", NDSDA_TEST_DMAPFILE);
-        params.emplace("NodeMapFile", NDSDA_TEST_NODEMAPFILE);
-    }
-    // ~ndsDABasicDeviceFixture() override {}
-
-    void SetUp() override {
-        factory.createDevice("DADevice", "deviceAccessDevice", params);
-        iface = nds::tests::TestControlSystemInterfaceImpl::getInstance("deviceAccessDevice");
-        ASSERT_NE(iface, nullptr);
-    }
-    void TearDown() override {
-        factory.destroyDevice("deviceAccessDevice");
-    }
-};
-
-/*
-class ndsDAFileParserFixture : public testing::Test {
-protected:
-    const std::string DEVICE_ALIAS   = NDSDA_TEST_DEVICEALIAS;
-    const std::string DEVICE_MAPFILE = NDSDA_TEST_DMAPFILE;
-    const std::string MEMORY_MAPFILE = NDSDA_TEST_MMAPFILE;
-
-    std::unique_ptr<ndsda::FileParser> parser;
-
-    void SetUp() override {
-        parser = std::make_unique<ndsda::FileParser>(DEVICE_MAPFILE, DEVICE_ALIAS);
-    }
-
-    void TearDown() override {}
-};
-*/
-
-class ndsDABridgeFixture : public testing::Test {
-protected:
-    ndsda::DABridge bridge{std::make_unique<ndsda::DAAccessor>(NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS)};
-};
-
-class ndsDAAccessorFixture : public testing::Test {
-protected:
-    ndsda::DAAccessor accessor{NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS};
-};
-#endif  //! NDS_DA_TEST_FIXTURE
+#endif  //! NDSDA_TEST_CONSTANTS_H

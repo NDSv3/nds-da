@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <nds3/exceptions.h>
 
-#include "nds-da-test-fixture.hpp"
+#include "ndsda-test-common.hpp"
 #include "ndsdaAccessor.hpp"
 #include "ndsdaCommon.hpp"
 
