@@ -13,19 +13,29 @@ namespace ndsda {
 
 // clang-format off
 template <typename T>
-concept PVScalarType = (
-    std::same_as<T, std::int32_t> || std::same_as<T, std::int64_t> ||
-    std::same_as<T, float>        || std::same_as<T, double> );
+concept PVWordType = (std::same_as<T, std::int32_t> || std::same_as<T, float>);
 
 template <typename T>
-concept PVVectorType = (
-    std::same_as<T, std::vector<bool>>          ||
+concept PVDoubleWordType = ( std::same_as<T, std::int64_t> || std::same_as<T, double> );
+
+template <typename T>
+concept PVWordVectorType = ( std::same_as<T, std::vector<bool>> ||
     std::same_as<T, std::vector<std::uint8_t>>  || std::same_as<T, std::vector<std::uint16_t>> ||
     std::same_as<T, std::vector<std::uint32_t>> ||
     std::same_as<T, std::vector<std::int8_t>>   || std::same_as<T, std::vector<std::int16_t>>  ||
-    std::same_as<T, std::vector<std::int32_t>>  || std::same_as<T, std::vector<std::int64_t>>  ||
-    std::same_as<T, std::vector<float>>         || std::same_as<T, std::vector<double>>        ||
-    std::same_as<T, std::string> );
+    std::same_as<T, std::vector<std::int32_t>>  || std::same_as<T, std::vector<float>> );
+
+template <typename T>
+concept PVDoubleWordVectorType = ( std::same_as<T, std::vector<std::int64_t>> || std::same_as<T, std::vector<double>> );
+
+template <typename T>
+concept PVScalarType = ( PVWordType<T> || PVDoubleWordType<T> );
+
+template <typename T>
+concept PVVectorType = ( PVWordVectorType<T> || PVDoubleWordVectorType<T> || std::same_as<T, std::string> );
+
+template <typename T>
+concept PVDataType = (PVScalarType<T> || PVVectorType<T>);
 
 enum class PVTypeEnum {
     INT32, INT64, FLOAT, DOUBLE, STRING,
@@ -59,10 +69,6 @@ void visitPVType(PVTypeEnum type, V&& visitor) {
 constexpr bool pvTypeEnum_isScalar(PVTypeEnum type) {
     return (type == PVTypeEnum::INT32 || type == PVTypeEnum::INT64 || type == PVTypeEnum::FLOAT || type == PVTypeEnum::DOUBLE || type == PVTypeEnum::STRING);
 }
-
-template <typename T>
-concept PVDataType = (PVScalarType<T> || PVVectorType<T>);
-// clang-format on
 
 template <typename T, typename E>
 using Result = boost::outcome_v2::result<T, E>;
