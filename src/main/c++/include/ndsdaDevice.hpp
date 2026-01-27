@@ -16,6 +16,7 @@ private:
     nds::Port rootNode;
 
     std::unique_ptr<DABridge> daBridge;
+    std::vector<std::shared_ptr<ndsda::NodeMapPV>> nodeMapPVs;
 
     template <typename T>
     void addScalarPV(const ndsda::NodeMapPV& pv);

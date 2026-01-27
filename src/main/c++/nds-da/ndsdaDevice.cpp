@@ -49,9 +49,8 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
         rootNode.addChild(*pv);
     }
 
-    std::vector<std::shared_ptr<ndsda::NodeMapPV>> nodeMapPVsResult;
     if (auto r = FileParser::parseNodeMapFile(nodeMapFile)) {
-        nodeMapPVsResult = std::move(r.assume_value());
+        this->nodeMapPVs = std::move(r.assume_value());
     } else {
         throw nds::NdsError(r.assume_error().what());
     }
@@ -61,7 +60,7 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
         throw nds::NdsError(mem.assume_error().what());
     }
 
-    auto r = mergeMapElements(mem.assume_value(), nodeMapPVsResult);  // mem is moved from
+    auto r = mergeMapElements(mem.assume_value(), this->nodeMapPVs);  // mem is moved from
     if (r) {
         throw nds::NdsError(r->what());
     }
