@@ -21,7 +21,7 @@ add_library(nds-da SHARED
 target_include_directories(nds-da PUBLIC
     "src/main/c++/include"
 )
-target_link_libraries(nds-da PRIVATE nds3 ChimeraTK-DeviceAccess)
+target_link_libraries(nds-da PRIVATE nds3 ChimeraTK-DeviceAccess atomic)
 target_compile_options(nds-da PRIVATE -Wall -Wextra -Wpedantic)
 set(CMAKE_CXX_CLANG_TIDY clang-tidy)
 
@@ -46,6 +46,7 @@ target_link_libraries(nds-da-test PRIVATE
     ChimeraTK-DeviceAccess
     nds-da
     GTest::gtest_main
+    atomic
 )
 target_include_directories(nds-da-test PRIVATE
     "src/test/c++/include"
