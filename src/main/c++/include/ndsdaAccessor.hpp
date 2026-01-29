@@ -6,7 +6,7 @@
 namespace ndsda {
 
 template <typename T>
-concept DARegisterType = std::same_as<T, uint32_t> || std::same_as<T, int32_t>;
+concept DARegisterType = std::same_as<T, uint32_t> || std::same_as<T, int32_t> || std::same_as<T, float>;
 
 class DAAccessor {
 public:

@@ -107,7 +107,8 @@ struct MemoryElement {
 
 using DARegAccessorVariant = std::variant<
     ChimeraTK::ScalarRegisterAccessor<uint32_t>,
-    ChimeraTK::ScalarRegisterAccessor<int32_t>>;
+    ChimeraTK::ScalarRegisterAccessor<int32_t>,
+    ChimeraTK::ScalarRegisterAccessor<float>>;
 
 struct RegisterElement : MemoryElement {
 public:
@@ -129,7 +130,8 @@ public:
 
 using DAOneDRegAccessorVariant = std::variant<
     ChimeraTK::OneDRegisterAccessor<uint32_t>,
-    ChimeraTK::OneDRegisterAccessor<int32_t>>;
+    ChimeraTK::OneDRegisterAccessor<int32_t>,
+    ChimeraTK::OneDRegisterAccessor<float>>;
 struct OneDElement : MemoryElement {
     size_t elements, elementSize;
     mutable std::optional<DAOneDRegAccessorVariant> daAccessor;  // Lazy initialization
