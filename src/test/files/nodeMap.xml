@@ -5,13 +5,36 @@
     xsi:schemaLocation="http://www.example.org/ndsda ../../main/ndsdaNodeMapSchema.xsd" >
     
     <ndsda:PVMap>
-        <ndsda:PV name="PV1" register="BASE.FIRST_REG" type="int32"/>
-        <ndsda:PV name="PV2" register="BASE.SECOND_REG" type="float"/>
-        <ndsda:PV name="PV3" register="BASE.THIRD_REG" type="float">
-            <ndsda:ReadPV>PV3-Getter</ndsda:ReadPV>
-            <ndsda:WritePV>PV3-Setter</ndsda:WritePV>
+        <ndsda:PV name="INTEGER32"    register="BASE.INTEGER32"    type="int32"/>
+        <!-- NDS does not support unsigned PVs -->
+        <ndsda:PV name="UINTEGER32"   register="BASE.UINTEGER32"   type="int32"/>
+        <ndsda:PV name="ONEBIT"       register="BASE.ONEBIT"       type="int32"/>
+        <ndsda:PV name="FLOATBITCAST" register="BASE.FLOATBITCAST" type="float"/>
+        <ndsda:PV name="FLOATFIXED8"  register="BASE.FLOATFIXED8"  type="float"/>
+        <ndsda:PV name="FLOATFIXED16" register="BASE.FLOATFIXED16" type="float"/>
+        <!-- <ndsda:PV name="DOUBLE"       register="BASE.DOUBLE"     type="float"/> -->
+        <!-- <ndsda:PV name="INTEGER64"    register="BASE.INTEGER64"  type="int64"/> -->
+        <!-- <ndsda:PV name="UINTEGER64"   register="BASE.UINTEGER64" type="int64"/> -->
+
+        <ndsda:PV name="CUSTOMGETSET" register="BASE.CUSTOMGETSET" type="int32">
+            <ndsda:ReadPV>CustomGetSet-Getter</ndsda:ReadPV>
+            <ndsda:WritePV>CustomGetSet-Setter</ndsda:WritePV>
         </ndsda:PV>
-        <ndsda:PV name="PV4" register=".DMA_SAMPLES" type="vector(uint32)" nElem="200"/>
+
+        <ndsda:PV name="VECBOOL"   register="BASE.VECBOOL"   type="vector(bool)"   nElem="10"/>
+        <ndsda:PV name="VECINT8"   register="BASE.VECINT8"   type="vector(int8)"   nElem="10"/>
+        <ndsda:PV name="VECINT16"  register="BASE.VECINT16"  type="vector(int16)"  nElem="10"/>
+        <ndsda:PV name="VECINT32"  register="BASE.VECINT32"  type="vector(int32)"  nElem="10"/>
+        <ndsda:PV name="VECINT64"  register="BASE.VECINT64"  type="vector(int64)"  nElem="10"/>
+        <ndsda:PV name="VECUINT8"  register="BASE.VECUINT8"  type="vector(uint8)"  nElem="10"/>
+        <ndsda:PV name="VECUINT16" register="BASE.VECUINT16" type="vector(uint16)" nElem="10"/>
+        <ndsda:PV name="VECUINT32" register="BASE.VECUINT32" type="vector(uint32)" nElem="10"/>
+        <ndsda:PV name="VECFLOATFIXED8"  register="BASE.VECFLOATFIXED8"  type="vector(float)"  nElem="10"/>
+        <ndsda:PV name="VECFLOATBITCAST"  register="BASE.VECFLOATBITCAST"  type="vector(float)"  nElem="10"/>
+        <ndsda:PV name="VECDOUBLE" register="BASE.VECDOUBLE" type="vector(double)" nElem="10"/>
+
+        <ndsda:PV name="HUNDREDI32VEC"  register=".HUNDREDI32VEC"  type="vector(int32)"  nElem="100"/>
+
     </ndsda:PVMap>
 
     <!-- <ndsda:FirmwareNode>

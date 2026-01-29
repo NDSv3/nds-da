@@ -1,9 +1,30 @@
 @MAPFILE_REVISION 0.0.0-11-g2b078ea4-test
 # path                                              nElements     address       nBytes  BAR width fixed sgnd AccMode
-.BASE                                                       4  0x00000000           16    0    32     0    0   RW
-BASE.FIRST_REG                                              1  0x00000000            4    0    32     0    0   RW
-BASE.SECOND_REG                                             1  0x00000004            4    0    32     0    1   RW
-BASE.THIRD_REG                                              1  0x00000008            4    0    32     0    0   RW
-BASE.ONE_BIT_REG                                            1  0x0000000C            4    0     1     0    0   RW
+.BASE                                                     137  0x00000000          548    0    32     0    0   RW
+BASE.INTEGER32                                              1  0x00000000            4    0    32     0    1   RW
+BASE.UINTEGER32                                             1  0x00000004            4    0    32     0    0   RW
+BASE.ONEBIT                                                 1  0x00000008            4    0     1     0    0   RW
+BASE.FLOATBITCAST                                           1  0x0000000C            4    0    32     0    0   RW
+BASE.FLOATFIXED8                                            1  0x00000010            4    0    32     8    1   RW
+BASE.FLOATFIXED16                                           1  0x00000014            4    0    32    16    1   RW
+BASE.CUSTOMGETSET                                           1  0x00000018            4    0    32     0    0   RW
+#BASE.DOUBLE                                                 2  0x00000000            8    0    32     0    0   RW
+#BASE.INTEGER64                                              2  0x00000000            8    0    32     0    0   RW
+#BASE.UINTEGER64                                             2  0x00000000            8    0    32     0    0   RW
 
-.DMA_SAMPLES                                              200  0x00000000          800   13    32     0    0   RW
+# path                                              nElements     address       nBytes  BAR width fixed sgnd AccMode
+BASE.VECBOOL                                               10  0x0000001C           40    0     1     0    0   RW
+BASE.VECINT8                                               10  0x00000044           40    0     8     0    1   RW
+BASE.VECINT16                                              10  0x0000006C           40    0    16     0    1   RW
+BASE.VECINT32                                              10  0x00000094           40    0    32     0    1   RW
+BASE.VECINT64                                              20  0x000000BC           80    0    32     0    1   RW
+BASE.VECUINT8                                              10  0x0000010C           40    0     8     0    0   RW
+BASE.VECUINT16                                             10  0x00000134           40    0    16     0    0   RW
+BASE.VECUINT32                                             10  0x0000015C           40    0    32     0    0   RW
+BASE.VECFLOATFIXED8                                        10  0x00000184           40    0    32     8    1   RW
+BASE.VECFLOATBITCAST                                       10  0x000001AC           40    0    32     0    0   RW
+BASE.VECDOUBLE                                             20  0x000001D4           80    0    32     0    0   RW
+# BASE.STRING                                                10  0x00000000           40    0    32     0    0   RW
+
+# path                                              nElements     address       nBytes  BAR width fixed sgnd AccMode
+.HUNDREDI32VEC                                            100  0x00000000          400   14    32     0    1   RW

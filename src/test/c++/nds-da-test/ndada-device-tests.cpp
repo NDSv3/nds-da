@@ -3,6 +3,7 @@
 #include <nds3/ndsTestFactory.h>
 #include <ctime>
 #include "ndsda-test-common.hpp"
+#include "ndsda-test-constants.hpp"
 
 TEST(DeviceTests, MissingDeviceMap_Exception) {
     nds::Factory factory("test");
@@ -110,8 +111,8 @@ TEST_F(ndsDABasicDeviceFixture, WriteReadPVInt32) {
     int32_t read_value  = 0;
     timespec tmp_time;
 
-    iface->writeCSValue("/deviceAccessDevice-" + NDSDA_TEST_SIGNEDREGPV + "-Set", tmp_time, write_value);
-    iface->readCSValue("/deviceAccessDevice-" + NDSDA_TEST_SIGNEDREGPV + "-Get", &tmp_time, &read_value);
+    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::INTEGER32]->writePV, tmp_time, write_value);
+    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::INTEGER32]->readPV, &tmp_time, &read_value);
 
     EXPECT_EQ(write_value, read_value);
 }
@@ -121,8 +122,8 @@ TEST_F(ndsDABasicDeviceFixture, WriteReadPVUInt32) {
     int32_t read_value   = 0;
     timespec tmp_time;
 
-    iface->writeCSValue("/deviceAccessDevice-" + NDSDA_TEST_REGISTERPV + "-Set", tmp_time, std::bit_cast<int32_t>(write_value));
-    iface->readCSValue("/deviceAccessDevice-" + NDSDA_TEST_REGISTERPV + "-Get", &tmp_time, &read_value);
+    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::UINTEGER32]->writePV, tmp_time, std::bit_cast<int32_t>(write_value));
+    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::UINTEGER32]->readPV, &tmp_time, &read_value);
 
     EXPECT_EQ(write_value, std::bit_cast<int32_t>(read_value));
 }
@@ -133,9 +134,20 @@ TEST_F(ndsDABasicDeviceFixture, WriteReadOneDUInt32) {
 
     for (size_t i = 0; i < write_values.size(); ++i) write_values[i] = std::rand() % INT32_MAX;
 
-    iface->writeCSValue("/deviceAccessDevice-" + NDSDA_TEST_ONEDPV + "-Set", tmp_time, write_values);
-    iface->readCSValue("/deviceAccessDevice-" + NDSDA_TEST_ONEDPV + "-Get", &tmp_time, &read_values);
+    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::VECUINT32]->writePV, tmp_time, write_values);
+    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::VECUINT32]->writePV, &tmp_time, &read_values);
     EXPECT_EQ(write_values.size(), read_values.size());
     for (size_t i = 0; i < write_values.size(); ++i)
         EXPECT_EQ(write_values[i], read_values[i]);
+}
+
+TEST_F(ndsDABasicDeviceFixture, WriteReadFloatBitcast) {
+    float write_value = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+    float read_value;
+    timespec tmp_time;
+
+    iface->writeCSValue("/deviceAccessDevice-PV3-Setter", tmp_time, write_value);
+    iface->readCSValue("/deviceAccessDevice-PV3-Getter", &tmp_time, &read_value);
+
+    EXPECT_EQ(write_value, read_value);
 }

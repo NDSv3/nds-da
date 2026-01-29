@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include <nds3/exceptions.h>
+#include <ranges>
 
 #include "ndsda-test-common.hpp"
+#include "ndsda-test-constants.hpp"
 #include "ndsdaAccessor.hpp"
 #include "ndsdaCommon.hpp"
 
@@ -25,9 +27,9 @@ TEST(DAAccessor, ConstructorWithValidParameters) {
     );
 }
 
-TEST_F(ndsDAAccessorFixture, WriteAndReadUint32Register) {  // TODO: Constants for memoryElement index
+TEST_F(ndsDAAccessorFixture, WriteAndReadUint32Register) {
     uint32_t testValue          = 12345;
-    const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[1]);
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::UINTEGER32]);
     ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
 
     auto res = accessor.writeRegister<uint32_t>(*memoryElementRef, testValue);
@@ -40,7 +42,7 @@ TEST_F(ndsDAAccessorFixture, WriteAndReadUint32Register) {  // TODO: Constants f
 
 TEST_F(ndsDAAccessorFixture, WriteAndReadInt32Register) {
     int32_t testValue           = -9876;
-    const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[2]);
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::INTEGER32]);
     ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
 
     auto res = accessor.writeRegister<int32_t>(*memoryElementRef, testValue);
@@ -56,7 +58,7 @@ TEST_F(ndsDAAccessorFixture, MultipleWritesRetainLatestValue) {
     for (size_t i = 0; i < testValues.size(); ++i) {
         testValues[i] = std::rand() % INT32_MAX;
     }
-    const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[1]);
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::UINTEGER32]);
     ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
 
     for (const auto& val : testValues) {
@@ -74,7 +76,7 @@ TEST_F(ndsDAAccessorFixture, WriteAndReadOneDRegisterUint32) {
     for (size_t i = 0; i < testValues.size(); ++i) {
         testValues[i] = std::rand() % INT32_MAX;
     }
-    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[5]);
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECUINT32]);
     ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
 
     auto res = accessor.writeOneDRegister<uint32_t>(*memoryElementRef, testValues);
@@ -91,7 +93,7 @@ TEST_F(ndsDAAccessorFixture, WriteAndReadOneDRegisterUint32) {
 }
 
 TEST_F(ndsDAAccessorFixture, ReadOneDRegisterExceedingElementsFails) {
-    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[5]);
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECUINT32]);
     ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
 
     std::vector<uint32_t> largeData(memoryElementRef->elements + 1, 1);
@@ -101,8 +103,8 @@ TEST_F(ndsDAAccessorFixture, ReadOneDRegisterExceedingElementsFails) {
 }
 
 TEST_F(ndsDAAccessorFixture, RegistersDoNotInterfereWithEachOther) {
-    const auto firstRegRef  = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[1]);
-    const auto secondRegRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[2]);
+    const auto firstRegRef  = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::UINTEGER32]);
+    const auto secondRegRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::INTEGER32]);
     ASSERT_NE(firstRegRef, nullptr) << "Invalid first register element type";
     ASSERT_NE(secondRegRef, nullptr) << "Invalid second register element type";
 
@@ -120,7 +122,7 @@ TEST_F(ndsDAAccessorFixture, RegistersDoNotInterfereWithEachOther) {
 
 TEST_F(ndsDAAccessorFixture, WriteReadOneBitRegister) {
     const int32_t intTestValue  = std::rand() % UINT32_MAX;
-    const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[4]);
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::ONEBIT]);
     ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
 
     auto writeRes = accessor.writeRegister<uint32_t>(*memoryElementRef, intTestValue);
@@ -137,20 +139,13 @@ TEST_F(ndsDAAccessorFixture, WriteReadAll) {
     const std::vector<int32_t> intOneDTest(NDSDA_TEST_ONEDELEMENTS, intTestValue);
     const std::vector<uint32_t> uintOneDTest(NDSDA_TEST_ONEDELEMENTS, uintTestValue);
 
-    // Remove first element
-    auto testElements = expectedMemoryElements;  // Copy vector
-    testElements.erase(testElements.begin());
-
     // TODO: Add bit width to register element and test it
-    for (auto it = testElements.begin(); it != testElements.end();) {
-        if ((*it)->name == "BASE.ONE_BIT_REG") {
-            it = testElements.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    auto filtered_elements = expectedMemoryElements | std::views::drop(1) |
+                             std::views::filter([](const std::shared_ptr<ndsda::MemoryElement>& elem) {
+                                 return elem->name != "BASE.ONE_BIT_REG";
+                             });
 
-    for (const auto& element : testElements) {
+    for (const auto& element : filtered_elements) {
         std::optional<ndsda::ndsdaError> writeResult;
         if (element->getType() == ndsda::MemoryElementType::SCALAR) {
             const auto regPtr = std::dynamic_pointer_cast<ndsda::RegisterElement>(element);
@@ -174,7 +169,7 @@ TEST_F(ndsDAAccessorFixture, WriteReadAll) {
         ASSERT_FALSE(writeResult.has_value()) << "Write failed for element " << element->name << ": " << writeResult->what();
     }
 
-    for (const auto& element : testElements) {
+    for (const auto& element : filtered_elements) {
         if (element->getType() == ndsda::MemoryElementType::SCALAR) {
             const auto regPtr = std::dynamic_pointer_cast<ndsda::RegisterElement>(element);
             ASSERT_NE(regPtr, nullptr) << "Invalid memory element type for scalar register";
