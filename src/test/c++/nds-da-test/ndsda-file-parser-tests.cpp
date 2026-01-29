@@ -101,7 +101,7 @@ static const std::string memoryElement_toString(const ndsda::MemoryElement& elem
         const ndsda::OneDElement& oneDElement = static_cast<const ndsda::OneDElement&>(element);
         repr += "  Type: One-D Register\n";
         repr += "  Elements: " + std::to_string(oneDElement.elements) + "\n";
-        repr += "  Element Size: " + std::to_string(oneDElement.elementSize) + " bytes\n";
+        repr += "  Element Size: " + std::to_string(oneDElement.elementSizeBits) + " bytes\n";
     }
     repr += "  Fractional Bits: " + std::to_string(element.fracBits) + "\n";
     repr += "  Signed: " + std::string(element.isSigned ? "true" : "false") + "\n";

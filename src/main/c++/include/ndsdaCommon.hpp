@@ -134,13 +134,13 @@ using DAOneDRegAccessorVariant = std::variant<
     ChimeraTK::OneDRegisterAccessor<int32_t>,
     ChimeraTK::OneDRegisterAccessor<float>>;
 struct OneDElement : MemoryElement {
-    size_t elements, elementSize;
+    size_t elements, elementSizeBits;
     mutable std::optional<DAOneDRegAccessorVariant> daAccessor;  // Lazy initialization
 
     OneDElement(const std::string& name, size_t elements, size_t elementSize, size_t fracBits = 0, bool isSigned = false)
         : MemoryElement(name, fracBits, isSigned),
           elements(elements),
-          elementSize(elementSize),
+          elementSizeBits(elementSize),
           daAccessor(std::nullopt) {};
 
     MemoryElementType getType() const override { return MemoryElementType::ONE_D; }
@@ -152,7 +152,7 @@ struct OneDElement : MemoryElement {
         const OneDElement& otherOneD = static_cast<const OneDElement&>(other);
         return (this->name == otherOneD.name) &&
                (this->elements == otherOneD.elements) &&
-               (this->elementSize == otherOneD.elementSize) &&
+               (this->elementSizeBits == otherOneD.elementSizeBits) &&
                (this->fracBits == otherOneD.fracBits) &&
                (this->isSigned == otherOneD.isSigned);
     }
