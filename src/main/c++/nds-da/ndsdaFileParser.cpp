@@ -110,11 +110,14 @@ Result<std::vector<std::shared_ptr<ndsda::NodeMapPV>>> ndsda::FileParser::parseN
 
     std::vector<std::shared_ptr<ndsda::NodeMapPV>> nodeMapPVs;
     for (auto& pv : pvMap.get()) {
-        if (pv.first != "ndsda:PV")
+        if (pv.first == "ndsda:PV") {
+            BOOST_OUTCOME_TRY(auto res, parsePV(pv.second));
+            nodeMapPVs.push_back(res);
+        } else if (pv.first == "<xmlcomment>") {
+            continue;
+        } else {
             return ndsda::ndsdaError("Invalid node map file: Unexpected element '" + pv.first + "' in PVMap");
-
-        BOOST_OUTCOME_TRY(auto res, parsePV(pv.second));
-        nodeMapPVs.push_back(res);
+        }
     }
 
     return nodeMapPVs;
