@@ -25,8 +25,7 @@ Result<RegisterType> DAAccessor::readRegister(const RegisterElement& reg) {
 
     try {
         auto& acc = std::get<ChimeraTK::ScalarRegisterAccessor<RegisterType>>(reg.daAccessor.value());
-        acc.read();
-        return static_cast<RegisterType>(acc);
+        return acc.readAndGet();
     } catch (const std::bad_variant_access&) {
         return ndsdaError("Tried to read register " + reg.name + " with incompatible type");
     }
@@ -40,8 +39,8 @@ std::optional<ndsdaError> DAAccessor::writeRegister(const RegisterElement& reg, 
 
     try {
         auto& acc = std::get<ChimeraTK::ScalarRegisterAccessor<RegisterType>>(reg.daAccessor.value());
-        acc       = value;
-        acc.write();
+        acc.setAndWrite(value);
+
     } catch (const std::bad_variant_access&) {
         return ndsdaError("Tried to write register " + reg.name + " with incompatible type");
     }
@@ -86,14 +85,15 @@ std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement& reg, 
 }
 
 // Explicit template instantiations
-template Result<int32_t> DAAccessor::readRegister(const RegisterElement&);
-template Result<uint32_t> DAAccessor::readRegister(const RegisterElement& readPV);
 
-template std::optional<ndsdaError> DAAccessor::writeRegister(const RegisterElement&, int32_t);
-template std::optional<ndsdaError> DAAccessor::writeRegister(const RegisterElement& writePV, uint32_t value);
+#define INSTANTIATE_TEMPLATE(Type)                                                              \
+    template Result<Type> DAAccessor::readRegister(const RegisterElement&);                     \
+    template std::optional<ndsdaError> DAAccessor::writeRegister(const RegisterElement&, Type); \
+    template Result<std::vector<Type>> DAAccessor::readOneDRegister(const OneDElement&);        \
+    template std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement&, const std::vector<Type>&);
 
-template Result<std::vector<uint32_t>> DAAccessor::readOneDRegister(const OneDElement& readPV);
-template Result<std::vector<int32_t>> DAAccessor::readOneDRegister(const OneDElement&);
+INSTANTIATE_TEMPLATE(int32_t)
+INSTANTIATE_TEMPLATE(uint32_t)
+INSTANTIATE_TEMPLATE(float)
 
-template std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement&, const std::vector<int32_t>&);
-template std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement& writePV, const std::vector<uint32_t>& values);
+#undef INSTANTIATE_TEMPLATE

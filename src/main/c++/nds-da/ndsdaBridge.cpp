@@ -57,34 +57,25 @@ void DABridge::writePV(timespec ts, PVType value, const ndsda::NodeMapPV& pv) {
 }
 
 // Explicit template instantiations
-template void DABridge::readPV(timespec*, std::int32_t*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::int64_t*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, float*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, double*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::string*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<bool>*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<std::uint8_t>*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<std::uint16_t>*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<std::uint32_t>*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<std::int8_t>*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<std::int16_t>*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<std::int32_t>*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<std::int64_t>*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<float>*, const NodeMapPV&);
-template void DABridge::readPV(timespec*, std::vector<double>*, const NodeMapPV&);
 
-template void DABridge::writePV(timespec, std::int32_t, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::int64_t, const NodeMapPV&);
-template void DABridge::writePV(timespec, float, const NodeMapPV&);
-template void DABridge::writePV(timespec, double, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::string, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<bool>, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<std::uint8_t>, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<std::uint16_t>, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<std::uint32_t>, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<std::int8_t>, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<std::int16_t>, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<std::int32_t>, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<std::int64_t>, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<float>, const NodeMapPV&);
-template void DABridge::writePV(timespec, std::vector<double>, const NodeMapPV&);
+#define INSTANTIATE_TEMPLATE(TYPE)                                      \
+    template void DABridge::readPV(timespec*, TYPE*, const NodeMapPV&); \
+    template void DABridge::writePV(timespec, TYPE, const NodeMapPV&);
+
+INSTANTIATE_TEMPLATE(std::int32_t)
+INSTANTIATE_TEMPLATE(std::int64_t)
+INSTANTIATE_TEMPLATE(float)
+INSTANTIATE_TEMPLATE(double)
+INSTANTIATE_TEMPLATE(std::string)
+INSTANTIATE_TEMPLATE(std::vector<bool>)
+INSTANTIATE_TEMPLATE(std::vector<std::uint8_t>)
+INSTANTIATE_TEMPLATE(std::vector<std::uint16_t>)
+INSTANTIATE_TEMPLATE(std::vector<std::uint32_t>)
+INSTANTIATE_TEMPLATE(std::vector<std::int8_t>)
+INSTANTIATE_TEMPLATE(std::vector<std::int16_t>)
+INSTANTIATE_TEMPLATE(std::vector<std::int32_t>)
+INSTANTIATE_TEMPLATE(std::vector<std::int64_t>)
+INSTANTIATE_TEMPLATE(std::vector<float>)
+INSTANTIATE_TEMPLATE(std::vector<double>)
+
+#undef INSTANTIATE_TEMPLATE
