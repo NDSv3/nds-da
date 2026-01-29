@@ -135,7 +135,6 @@ static const std::string memoryMapPV_toString(const ndsda::NodeMapPV& nodeMapPv)
     std::string repr = "PV Name: " + nodeMapPv.name + "\n";
     repr += "  Address: " + nodeMapPv.reg + "\n";
     repr += "  Type: " + typeEnumToString(nodeMapPv.type) + "\n";
-    repr += "  Approximate Float: " + std::string(nodeMapPv.approximateFloat ? "true" : "false") + "\n";
     repr += "  Number of Elements: " + std::to_string(nodeMapPv.nElem) + "\n";
     repr += "  Read PV: " + nodeMapPv.readPV + "\n";
     repr += "  Write PV: " + nodeMapPv.writePV + "\n";

@@ -154,7 +154,6 @@ static Result<std::shared_ptr<ndsda::NodeMapPV>> parsePV(const boost::property_t
     if (!typeOpt) return ndsda::ndsdaError("Invalid PV element: Missing 'type' attribute.");
 
     // Optional attributes
-    bool roundFloats    = xmlattrs->get_optional<std::string>("floatMethod").value_or("bitcast") == "approximate";
     int nElem           = xmlattrs->get_optional<int>("nElem").value_or(1);
     std::string readPV  = pvTree.get_optional<std::string>("ndsda:ReadPV").value_or(nameOpt.get() + ndsda::DAPV_GET_SUFFIX);
     std::string writePV = pvTree.get_optional<std::string>("ndsda:WritePV").value_or(nameOpt.get() + ndsda::DAPV_SET_SUFFIX);
@@ -170,5 +169,5 @@ static Result<std::shared_ptr<ndsda::NodeMapPV>> parsePV(const boost::property_t
         return ndsda::ndsdaError("Invalid PV element: Unsupported 'type' attribute value: " + typeOpt.get());
     }
 
-    return std::make_shared<ndsda::NodeMapPV>(nameOpt.get(), registerOpt.get(), type, roundFloats, readPV, writePV, static_cast<size_t>(nElem));
+    return std::make_shared<ndsda::NodeMapPV>(nameOpt.get(), registerOpt.get(), type, readPV, writePV, static_cast<size_t>(nElem));
 }

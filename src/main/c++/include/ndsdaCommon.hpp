@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <ChimeraTK/Device.h>
+#include <ChimeraTK/OneDRegisterAccessor.h>
 #include <variant>
 #include <type_traits>
 
@@ -161,17 +162,15 @@ struct NodeMapPV {
     std::string name;
     std::string reg;
     ndsda::PVTypeEnum type;
-    bool approximateFloat;
     size_t nElem;
     std::string readPV;
     std::string writePV;
     std::unique_ptr<MemoryElement> memoryElement;  // Deletes copy constructor
 
-    NodeMapPV(const std::string& name, const std::string& reg, ndsda::PVTypeEnum type, bool approximateFloat, const std::string& readPV, const std::string& writePV, size_t nElem = 1, std::unique_ptr<MemoryElement> memoryElement = nullptr)
+    NodeMapPV(const std::string& name, const std::string& reg, ndsda::PVTypeEnum type, const std::string& readPV, const std::string& writePV, size_t nElem = 1, std::unique_ptr<MemoryElement> memoryElement = nullptr)
         : name(name),
           reg(generateRegName(reg)),
           type(type),
-          approximateFloat(approximateFloat),
           nElem(nElem),
           readPV(readPV),
           writePV(writePV),
@@ -181,7 +180,6 @@ struct NodeMapPV {
         return (this->name == other.name) &&
                (this->reg == other.reg) &&
                (this->type == other.type) &&
-               (this->approximateFloat == other.approximateFloat) &&
                (this->nElem == other.nElem) &&
                (this->readPV == other.readPV) &&
                (this->writePV == other.writePV);

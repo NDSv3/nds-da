@@ -6,8 +6,8 @@
     
     <ndsda:PVMap>
         <ndsda:PV name="PV1" register="BASE.FIRST_REG" type="int32"/>
-        <ndsda:PV name="PV2" register="BASE.SECOND_REG" type="float" floatMethod="approximate" />
-        <ndsda:PV name="PV3" register="BASE.THIRD_REG" type="float" floatMethod="bitcast" >
+        <ndsda:PV name="PV2" register="BASE.SECOND_REG" type="float"/>
+        <ndsda:PV name="PV3" register="BASE.THIRD_REG" type="float">
             <ndsda:ReadPV>PV3-Getter</ndsda:ReadPV>
             <ndsda:WritePV>PV3-Setter</ndsda:WritePV>
         </ndsda:PV>

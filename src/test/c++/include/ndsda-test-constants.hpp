@@ -31,20 +31,20 @@ static const std::vector<std::shared_ptr<ndsda::MemoryElement>> expectedMemoryEl
 
 static const std::vector<std::shared_ptr<ndsda::NodeMapPV>> expectedNodeMapPVs = {
     std::make_shared<ndsda::NodeMapPV>(
-        "PV1", "BASE.FIRST_REG", PTE::INT32, false, "PV1-Get", "PV1-Set", 1,
-        std::make_unique<ndsda::RegisterElement>("BASE.FIRST_REG", 0, 0)
+        "PV1", "BASE.FIRST_REG", PTE::INT32, "PV1-Get", "PV1-Set", 1,
+        std::make_unique<ndsda::RegisterElement>("BASE.FIRST_REG", 2, false)
     ),
     std::make_shared<ndsda::NodeMapPV>(
-        "PV2", "BASE.SECOND_REG", PTE::FLOAT, true, "PV2-Get", "PV2-Set", 1,
-        std::make_unique<ndsda::RegisterElement>("BASE.SECOND_REG", 0, 1)
+        "PV2", "BASE.SECOND_REG", PTE::FLOAT, "PV2-Get", "PV2-Set", 1,
+        std::make_unique<ndsda::RegisterElement>("BASE.SECOND_REG", 0, true)
     ),
     std::make_shared<ndsda::NodeMapPV>(
-        "PV3", "BASE.THIRD_REG", PTE::FLOAT, false, "PV3-Getter", "PV3-Setter", 1,
-        std::make_unique<ndsda::RegisterElement>("BASE.THIRD_REG", 0, 0)
+        "PV3", "BASE.THIRD_REG", PTE::FLOAT, "PV3-Getter", "PV3-Setter", 1,
+        std::make_unique<ndsda::RegisterElement>("BASE.THIRD_REG", 0, false)
     ),
     std::make_shared<ndsda::NodeMapPV>(
-        "PV4", ".DMA_SAMPLES", PTE::VEC_UINT32, false, "PV4-Get", "PV4-Set", 200,
-        std::make_unique<ndsda::OneDElement>(".DMA_SAMPLES", 200, 32, 0, 0)
+        "PV4", ".DMA_SAMPLES", PTE::VEC_UINT32, "PV4-Get", "PV4-Set", 200,
+        std::make_unique<ndsda::OneDElement>(".DMA_SAMPLES", 200, 32, false, 0)
     )
 };
 
