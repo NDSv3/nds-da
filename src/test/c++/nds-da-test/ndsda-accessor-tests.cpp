@@ -139,7 +139,6 @@ TEST_F(ndsDAAccessorFixture, WriteReadAll) {
     const std::vector<int32_t> intOneDTest(NDSDA_TEST_ONEDELEMENTS, intTestValue);
     const std::vector<uint32_t> uintOneDTest(NDSDA_TEST_ONEDELEMENTS, uintTestValue);
 
-    // TODO: Add bit width to register element and test it
     auto filtered_elements = expectedMemoryElements | std::views::drop(1) |
                              std::views::filter([](const std::shared_ptr<ndsda::MemoryElement>& elem) {
                                  return elem->name != "BASE.ONE_BIT_REG";

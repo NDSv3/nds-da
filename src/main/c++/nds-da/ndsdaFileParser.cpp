@@ -76,7 +76,7 @@ Result<std::vector<std::unique_ptr<ndsda::MemoryElement>>> ndsda::FileParser::pa
         }
 
         if (nElements == 1) {
-            registers.push_back(std::make_unique<ndsda::RegisterElement>(path, fixed, bool(sgnd)));
+            registers.push_back(std::make_unique<ndsda::RegisterElement>(path, width, fixed, bool(sgnd)));
         } else {
             registers.push_back(
                 std::make_unique<ndsda::OneDElement>(path, nElements, width, fixed, bool(sgnd))

@@ -93,11 +93,13 @@ struct ndsdaError : public std::runtime_error {
 struct MemoryElement {
     std::string name;
     size_t fracBits;
+    size_t elementWidthBits;
     bool isSigned;
 
-    MemoryElement(const std::string& name, size_t fracBits = 0, bool isSigned = false)
+    MemoryElement(const std::string& name, size_t elementWidthBits = 32, size_t fracBits = 0, bool isSigned = false)
         : name(generateRegName(name)),
           fracBits(fracBits),
+          elementWidthBits(elementWidthBits),
           isSigned(isSigned) {};
 
     virtual MemoryElementType getType() const = 0;
@@ -115,8 +117,8 @@ struct RegisterElement : MemoryElement {
 public:
     mutable std::optional<DARegAccessorVariant> daAccessor;  // Lazy initialization
 
-    RegisterElement(const std::string& name, size_t fracBits, bool isSigned)
-        : MemoryElement(name, fracBits, isSigned), daAccessor(std::nullopt) {};
+    RegisterElement(const std::string& name, size_t elementSizeBits, size_t fracBits, bool isSigned)
+        : MemoryElement(name, elementSizeBits, fracBits, isSigned), daAccessor(std::nullopt) {};
 
     MemoryElementType getType() const override { return MemoryElementType::SCALAR; }
 
@@ -125,7 +127,7 @@ public:
             return false;
         }
         const RegisterElement& otherReg = static_cast<const RegisterElement&>(other);
-        return (this->name == otherReg.name) && (this->fracBits == otherReg.fracBits) && (this->isSigned == otherReg.isSigned);
+        return (this->name == otherReg.name) && (this->fracBits == otherReg.fracBits) && (this->isSigned == otherReg.isSigned) && (this->elementWidthBits == otherReg.elementWidthBits);
     }
 };
 
@@ -134,13 +136,12 @@ using DAOneDRegAccessorVariant = std::variant<
     ChimeraTK::OneDRegisterAccessor<int32_t>,
     ChimeraTK::OneDRegisterAccessor<float>>;
 struct OneDElement : MemoryElement {
-    size_t elements, elementSizeBits;
+    size_t elements;
     mutable std::optional<DAOneDRegAccessorVariant> daAccessor;  // Lazy initialization
 
     OneDElement(const std::string& name, size_t elements, size_t elementSize, size_t fracBits = 0, bool isSigned = false)
-        : MemoryElement(name, fracBits, isSigned),
+        : MemoryElement(name, elementSize, fracBits, isSigned),
           elements(elements),
-          elementSizeBits(elementSize),
           daAccessor(std::nullopt) {};
 
     MemoryElementType getType() const override { return MemoryElementType::ONE_D; }
@@ -152,9 +153,9 @@ struct OneDElement : MemoryElement {
         const OneDElement& otherOneD = static_cast<const OneDElement&>(other);
         return (this->name == otherOneD.name) &&
                (this->elements == otherOneD.elements) &&
-               (this->elementSizeBits == otherOneD.elementSizeBits) &&
                (this->fracBits == otherOneD.fracBits) &&
-               (this->isSigned == otherOneD.isSigned);
+               (this->isSigned == otherOneD.isSigned) &&
+               (this->elementWidthBits == otherOneD.elementWidthBits);
     }
 };
 

@@ -21,13 +21,13 @@ const size_t NDSDA_TEST_ONEDELEMENTS = 10;
 // WARNING: MUST match the content of MEMORY_MAPFILE with DEVICE_ALIAS
 static const auto expectedMemoryElements = std::to_array<std::shared_ptr<MemoryElement>>({
     std::make_shared<OneDElement>(".BASE", 137, 32),
-    std::make_shared<RegisterElement>("BASE.INTEGER32", 0, true),
-    std::make_shared<RegisterElement>("BASE.UINTEGER32", 0, false),
-    std::make_shared<RegisterElement>("BASE.ONEBIT", 0, false),
-    std::make_shared<RegisterElement>("BASE.FLOATBITCAST", 0, false),
-    std::make_shared<RegisterElement>("BASE.FLOATFIXED8", 8, true),
-    std::make_shared<RegisterElement>("BASE.FLOATFIXED16", 16, true),
-    std::make_shared<RegisterElement>("BASE.CUSTOMGETSET", 0, false),
+    std::make_shared<RegisterElement>("BASE.INTEGER32", 32, 0, true),
+    std::make_shared<RegisterElement>("BASE.UINTEGER32", 32, 0, false),
+    std::make_shared<RegisterElement>("BASE.ONEBIT", 1, 0, false),
+    std::make_shared<RegisterElement>("BASE.FLOATBITCAST", 32, 0, false),
+    std::make_shared<RegisterElement>("BASE.FLOATFIXED8", 32, 8, true),
+    std::make_shared<RegisterElement>("BASE.FLOATFIXED16", 32, 16, true),
+    std::make_shared<RegisterElement>("BASE.CUSTOMGETSET", 32, 0, false),
 
     std::make_shared<OneDElement>("BASE.VECBOOL", NDSDA_TEST_ONEDELEMENTS, 1),
     std::make_shared<OneDElement>("BASE.VECINT8", NDSDA_TEST_ONEDELEMENTS, 8, 0, true),
