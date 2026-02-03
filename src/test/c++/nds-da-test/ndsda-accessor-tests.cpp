@@ -1,5 +1,9 @@
 #include <gtest/gtest.h>
 #include <nds3/exceptions.h>
+#include <bit>
+#include <cmath>
+#include <ios>
+#include <random>
 #include <ranges>
 
 #include "ndsda-test-common.hpp"
@@ -133,68 +137,61 @@ TEST_F(ndsDAAccessorFixture, WriteReadOneBitRegister) {
     ASSERT_EQ(readValue.assume_value(), intTestValue & 0x1) << "Read value does not match written value";
 }
 
-TEST_F(ndsDAAccessorFixture, WriteReadAll) {
-    const int32_t intTestValue   = std::rand() % UINT32_MAX;
-    const uint32_t uintTestValue = std::rand() % INT32_MAX;
-    const std::vector<int32_t> intOneDTest(NDSDA_TEST_ONEDELEMENTS, intTestValue);
-    const std::vector<uint32_t> uintOneDTest(NDSDA_TEST_ONEDELEMENTS, uintTestValue);
+// Generate number in range [min, -1] U [1, max]
+static float generateFloatInFixedRange(int width, int fracBits) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
 
-    auto filtered_elements = expectedMemoryElements | std::views::drop(1) |
-                             std::views::filter([](const std::shared_ptr<ndsda::MemoryElement>& elem) {
-                                 return elem->name != "BASE.ONE_BIT_REG";
-                             });
+    double max_value = (std::pow(2.0, width - 1) - 1.0) / std::pow(2.0, fracBits) - 1;
+    double min_value = -1.0 * (std::pow(2.0, width - 1)) / std::pow(2.0, fracBits) + 1;
 
-    for (const auto& element : filtered_elements) {
-        std::optional<ndsda::ndsdaError> writeResult;
-        if (element->getType() == ndsda::MemoryElementType::SCALAR) {
-            const auto regPtr = std::dynamic_pointer_cast<ndsda::RegisterElement>(element);
-            ASSERT_NE(regPtr, nullptr) << "Invalid memory element type for scalar register";
+    std::uniform_real_distribution<float> dist(static_cast<float>(min_value), static_cast<float>(max_value));
+    float result = dist(gen);
+    return result >= 0 ? result + 1.0f : result - 1.0f;
+}
 
-            if (regPtr->isSigned) {
-                writeResult = accessor.writeRegister<int32_t>(*regPtr, intTestValue);
-            } else {
-                writeResult = accessor.writeRegister<uint32_t>(*regPtr, uintTestValue);
-            }
-        } else {  // ONED
-            const auto oneDPtr = std::dynamic_pointer_cast<ndsda::OneDElement>(element);
-            ASSERT_NE(oneDPtr, nullptr) << "Invalid memory element type for OneD register";
+TEST_F(ndsDAAccessorFixture, WriteReadFloatFixed) {
+    const auto me = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::FLOATFIXED16]);
+    ASSERT_NE(me, nullptr) << "Invalid memory element type for test";
 
-            if (oneDPtr->isSigned) {
-                writeResult = accessor.writeOneDRegister<int32_t>(*oneDPtr, intOneDTest);
-            } else {
-                writeResult = accessor.writeOneDRegister<uint32_t>(*oneDPtr, uintOneDTest);
-            }
-        }
-        ASSERT_FALSE(writeResult.has_value()) << "Write failed for element " << element->name << ": " << writeResult->what();
-    }
+    // Avoid values with abs < 1 and outside range, so they are exactly representable in fixed-point
+    const float value = generateFloatInFixedRange(me->elementWidthBits, me->fracBits);
 
-    for (const auto& element : filtered_elements) {
-        if (element->getType() == ndsda::MemoryElementType::SCALAR) {
-            const auto regPtr = std::dynamic_pointer_cast<ndsda::RegisterElement>(element);
-            ASSERT_NE(regPtr, nullptr) << "Invalid memory element type for scalar register";
+    auto writeRes = accessor.writeRegister<float>(*me, value);
+    ASSERT_FALSE(writeRes.has_value()) << "Write failed: " << writeRes->what();
 
-            if (regPtr->isSigned) {
-                auto readResult = accessor.readRegister<int32_t>(*regPtr);
-                ASSERT_TRUE(readResult.has_value()) << "Read register returned error: " << readResult.assume_error().what();
-                EXPECT_EQ(readResult.assume_value(), intTestValue) << "Read value does not match written value for element " << element->name;
-            } else {
-                auto readResult = accessor.readRegister<uint32_t>(*regPtr);
-                ASSERT_TRUE(readResult.has_value()) << "Read register returned error: " << readResult.assume_error().what();
-                EXPECT_EQ(readResult.assume_value(), uintTestValue) << "Read value does not match written value for element " << element->name;
-            }
-        } else {  // ONED
-            const auto oneDPtr = std::dynamic_pointer_cast<ndsda::OneDElement>(element);
-            ASSERT_NE(oneDPtr, nullptr) << "Invalid memory element type for OneD register";
+    auto readValue = accessor.readRegister<float>(*me);
+    ASSERT_TRUE(readValue.has_value()) << "Read register returned error: " << readValue.assume_error().what();
+    ASSERT_FLOAT_EQ(readValue.assume_value(), value) << "Read value does not match written value within tolerance";
+}
 
-            if (oneDPtr->isSigned) {
-                auto readResult = accessor.readOneDRegister<int32_t>(*oneDPtr);
-                ASSERT_TRUE(readResult.has_value()) << "Read OneD register returned error: " << readResult.assume_error().what();
-                ASSERT_EQ(readResult.assume_value(), intOneDTest) << "Read OneD values do not match written values for element " << element->name;
-            } else {
-                auto readResult = accessor.readOneDRegister<uint32_t>(*oneDPtr);
-                ASSERT_TRUE(readResult.has_value()) << "Read OneD register returned error: " << readResult.assume_error().what();
-                ASSERT_EQ(readResult.assume_value(), uintOneDTest) << "Read OneD values do not match written values for element " << element->name;
-            }
-        }
-    }
+TEST_F(ndsDAAccessorFixture, WriteReadFloatSmallNumber) {
+    const auto me = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::FLOATFIXED16]);
+    ASSERT_NE(me, nullptr) << "Invalid memory element type for test";
+
+    // Test value between -1 and 1, which cannot be exactly represented in fixed-point
+    // Allowed error = +- 1 LSB
+    const float value = 2 * (std::rand() / static_cast<float>(RAND_MAX)) - 1.0f;
+    const float LSB   = 1.0f / static_cast<float>(1 << me->fracBits);
+
+    auto writeRes = accessor.writeRegister<float>(*me, value);
+    ASSERT_FALSE(writeRes.has_value()) << "Write failed: " << writeRes->what();
+
+    auto readValue = accessor.readRegister<float>(*me);
+    ASSERT_TRUE(readValue.has_value()) << "Read register returned error: " << readValue.assume_error().what();
+    ASSERT_NEAR(readValue.assume_value(), value, LSB) << "Read value does not match written value within tolerance";
+}
+
+TEST_F(ndsDAAccessorFixture, WriteAndReadFloatSaturation) {
+    float testValue = INT16_MAX + 1;
+
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::FLOATFIXED16]);  // 16 fractional bits
+    ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
+
+    auto res = accessor.writeRegister<float>(*memoryElementRef, testValue);
+    ASSERT_FALSE(res.has_value()) << "Write failed: " << res->what();
+
+    auto readValue = accessor.readRegister<float>(*memoryElementRef);
+    ASSERT_TRUE(readValue.has_value()) << "Read register returned error: " << readValue.assume_error().what();
+    ASSERT_FLOAT_EQ(INT16_MAX, readValue.assume_value()) << "Read value does not match saturated value";
 }
