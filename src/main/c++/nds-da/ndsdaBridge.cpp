@@ -3,9 +3,9 @@
 #include <ChimeraTK/OneDRegisterAccessor.h>
 #include <ctime>
 #include <memory>
+#include <optional>
 
 #include "ndsdaCommon.hpp"
-#include <boost/outcome/try.hpp>
 
 using ndsda::DABridge;
 
@@ -16,43 +16,69 @@ DABridge::DABridge(std::unique_ptr<ndsda::DAAccessor> daAccessor) {
     this->daAccessor = std::move(daAccessor);
 }
 
+#define TRY_RESULT(resultVar, expression, errorMsg)                                       \
+    auto resultVar = (expression);                                                        \
+    if (resultVar.has_error()) {                                                          \
+        throw ndsda::ndsdaError(errorMsg + std::string(resultVar.assume_error().what())); \
+    }
+
 template <ndsda::PVDataType PVType>
 void DABridge::readPV(timespec* ts, PVType* value, const ndsda::NodeMapPV& pv) {
-    using PTE = ndsda::PVTypeEnum;
+    if constexpr (PVDoubleWordType<PVType> || PVDoubleWordVectorType<PVType>) {
+        throw ndsda::ndsdaError("DAAccessor does not support double word types yet");  // TODO:
+    }
 
     clock_gettime(CLOCK_REALTIME, ts);
+
     if constexpr (PVWordType<PVType>) {
-        try {
-            auto& reg = dynamic_cast<ndsda::RegisterElement&>(*pv.memoryElement);
-            if (auto result = daAccessor->readRegister<uint32_t>(reg)) {
-                *value = std::bit_cast<PVType>(result.assume_value());
+        if (pv.memoryElement->getType() != ndsda::MemoryElementType::SCALAR) {
+            throw ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as scalar, but it is not");
+        }
+        auto& reg = static_cast<ndsda::RegisterElement&>(*pv.memoryElement);
+
+        if (std::same_as<int32_t, PVType> || pv.memoryElement->fracBits != 0) {  // Int or round float
+            if (auto result = daAccessor->readRegister<PVType>(reg)) {
+                *value = result.assume_value();
             } else {
                 throw ndsda::ndsdaError("Failed to read PV '" + pv.name + "': " + std::string(result.assume_error().what()));
             }
-        } catch (const std::bad_cast&) {
-            throw ndsda::ndsdaError("Tried to read PV '" + pv.name + "' with incompatible type");
+        } else {  // Bitcast float
+            auto result = daAccessor->readRegister<uint32_t>(reg);
+            if (result) {
+                *value = std::bit_cast<float>(result.assume_value());
+            } else {
+                throw ndsda::ndsdaError("Failed to read PV '" + pv.name + "': " + std::string(result.assume_error().what()));
+            }
         }
     } else {
-        // TODO: Other types
+        // TODO: Vector types
     }
 }
 
 template <ndsda::PVDataType PVType>
 void DABridge::writePV(timespec ts, PVType value, const ndsda::NodeMapPV& pv) {
+    if constexpr (PVDoubleWordType<PVType> || PVDoubleWordVectorType<PVType>) {
+        throw ndsda::ndsdaError("DAAccessor does not support double word types yet");  // TODO:
+    }
+
     (void)ts;
 
     if constexpr (PVWordType<PVType>) {
-        try {
-            auto& reg = dynamic_cast<ndsda::RegisterElement&>(*pv.memoryElement);
-            auto res  = daAccessor->writeRegister<uint32_t>(reg, std::bit_cast<uint32_t>(value));
+        auto& reg = dynamic_cast<ndsda::RegisterElement&>(*pv.memoryElement);
+
+        if (std::same_as<PVType, int32_t> || pv.memoryElement->fracBits != 0) {  // Int or round float
+            auto res = daAccessor->writeRegister<PVType>(reg, value);
             if (res) {
                 throw ndsda::ndsdaError("Failed to write PV '" + pv.name + "': " + std::string(res->what()));
             }
-        } catch (const std::bad_cast&) {
-            throw ndsda::ndsdaError("Tried to write PV '" + pv.name + "' with incompatible type");
+        } else {
+            auto res = daAccessor->writeRegister<uint32_t>(reg, std::bit_cast<uint32_t>(value));
+            if (res) {
+                throw ndsda::ndsdaError("Failed to write PV '" + pv.name + "': " + std::string(res->what()));
+            }
         }
     } else {
-        // TODO: Other types
+        // TODO: Vector types
     }
 }
 
