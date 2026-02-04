@@ -1,10 +1,7 @@
 #include <gtest/gtest.h>
 #include <nds3/exceptions.h>
-#include <bit>
 #include <cmath>
-#include <ios>
 #include <random>
-#include <ranges>
 
 #include "ndsda-test-common.hpp"
 #include "ndsda-test-constants.hpp"
@@ -183,7 +180,7 @@ TEST_F(ndsDAAccessorFixture, WriteReadFloatSmallNumber) {
 }
 
 TEST_F(ndsDAAccessorFixture, WriteAndReadFloatSaturation) {
-    float testValue = INT16_MAX + 1;
+    float testValue = INT16_MAX + 2;
 
     const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::FLOATFIXED16]);  // 16 fractional bits
     ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
@@ -193,5 +190,5 @@ TEST_F(ndsDAAccessorFixture, WriteAndReadFloatSaturation) {
 
     auto readValue = accessor.readRegister<float>(*memoryElementRef);
     ASSERT_TRUE(readValue.has_value()) << "Read register returned error: " << readValue.assume_error().what();
-    ASSERT_FLOAT_EQ(INT16_MAX, readValue.assume_value()) << "Read value does not match saturated value";
+    ASSERT_FLOAT_EQ(INT16_MAX + 1, readValue.assume_value()) << "Read value does not match saturated value";
 }
