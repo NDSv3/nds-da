@@ -137,3 +137,23 @@ TEST_F(ndsDABridgeFixture, WriteFloatFixed16) {
 
     ASSERT_NEAR(value, testValue, LSB) << "WritePV value does not match read value";
 }
+
+#define NDSDA_TESTF_READONED(TYPE, RANDOM_VALUE_GENERATION, ACCESSOR_TYPE, PVIDX)                                      \
+    TEST_F(ndsDABridgeFixture, ReadOneD##TYPE) {                                                                       \
+        timespec ts;                                                                                                   \
+        std::array<TYPE, NDSDA_TEST_ONEDELEMENTS> writeArray;                                                          \
+        std::vector<TYPE> readArray(NDSDA_TEST_ONEDELEMENTS);                                                          \
+        for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {                                                         \
+            writeArray[i] = (RANDOM_VALUE_GENERATION);                                                                 \
+        }                                                                                                              \
+        const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[PVIDX];                                        \
+        DATestHelper::getInstance().writeOneD<ACCESSOR_TYPE>(pv->reg, writeArray);                                     \
+        bridge.readPV(&ts, readArray.data(), *pv);                                                                     \
+        ASSERT_NE(ts.tv_nsec, 0) << "ReadPV did not set timestamp";                                                    \
+        ASSERT_NE(ts.tv_sec, 0) << "ReadPV did not set timestamp";                                                     \
+        for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {                                                         \
+            ASSERT_EQ(writeArray[i], readArray[i]) << "ReadPV OneD value does not match written value at index " << i; \
+        }                                                                                                              \
+    }
+
+NDSDA_TESTF_READONED(int32_t, std::rand() % INT32_MAX, int32_t, expectedPVIdx::VECINT32)

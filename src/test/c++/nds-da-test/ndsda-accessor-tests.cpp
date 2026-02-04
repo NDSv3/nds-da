@@ -72,37 +72,6 @@ TEST_F(ndsDAAccessorFixture, MultipleWritesRetainLatestValue) {
     ASSERT_EQ(testValues[testValues.size() - 1], readValue.assume_value()) << "Read value does not match expected latest value";
 }
 
-TEST_F(ndsDAAccessorFixture, WriteAndReadOneDRegisterUint32) {
-    std::vector<uint32_t> testValues(NDSDA_TEST_ONEDELEMENTS);
-    for (size_t i = 0; i < testValues.size(); ++i) {
-        testValues[i] = std::rand() % INT32_MAX;
-    }
-    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECUINT32]);
-    ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
-
-    auto res = accessor.writeOneDRegister<uint32_t>(*memoryElementRef, testValues);
-    ASSERT_FALSE(res.has_value()) << "Write failed: " << res->what();
-
-    auto readValues = accessor.readOneDRegister<uint32_t>(*memoryElementRef);
-    ASSERT_TRUE(readValues.has_value()) << "Read register returned error: " << readValues.assume_error().what();
-
-    const auto& readValuesVec = readValues.assume_value();
-    ASSERT_EQ(testValues.size(), readValuesVec.size()) << "Read vector size does not match written size";
-    for (size_t i = 0; i < testValues.size(); ++i) {
-        ASSERT_EQ(testValues[i], readValuesVec[i]) << "Value mismatch at index " << i;
-    }
-}
-
-TEST_F(ndsDAAccessorFixture, ReadOneDRegisterExceedingElementsFails) {
-    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECUINT32]);
-    ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
-
-    std::vector<uint32_t> largeData(memoryElementRef->elements + 1, 1);
-
-    auto writeError = accessor.writeOneDRegister<uint32_t>(*memoryElementRef, largeData);
-    ASSERT_TRUE(writeError.has_value()) << "Write should have failed for oversized data";
-}
-
 TEST_F(ndsDAAccessorFixture, RegistersDoNotInterfereWithEachOther) {
     const auto firstRegRef  = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::UINTEGER32]);
     const auto secondRegRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::INTEGER32]);
@@ -191,4 +160,98 @@ TEST_F(ndsDAAccessorFixture, WriteAndReadFloatSaturation) {
     auto readValue = accessor.readRegister<float>(*memoryElementRef);
     ASSERT_TRUE(readValue.has_value()) << "Read register returned error: " << readValue.assume_error().what();
     ASSERT_FLOAT_EQ(INT16_MAX + 1, readValue.assume_value()) << "Read value does not match saturated value";
+}
+
+TEST_F(ndsDAAccessorFixture, ReadOneDRegisterExceedingElementsFails) {
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECUINT32]);
+    ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
+
+    std::vector<uint32_t> largeData(memoryElementRef->elements + 1, 1);
+
+    auto writeError = accessor.writeOneDRegister<uint32_t>(*memoryElementRef, largeData);
+    ASSERT_TRUE(writeError.has_value()) << "Write should have failed for oversized data";
+}
+
+TEST_F(ndsDAAccessorFixture, WriteAndReadOneDRegisterUint32MSB0) {
+    std::vector<uint32_t> testValues(NDSDA_TEST_ONEDELEMENTS);
+    for (size_t i = 0; i < testValues.size(); ++i) {
+        testValues[i] = (std::rand() % INT32_MAX) & ~(1 << 31);
+    }
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECUINT32]);
+    ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
+
+    auto res = accessor.writeOneDRegister<uint32_t>(*memoryElementRef, testValues);
+    ASSERT_FALSE(res.has_value()) << "Write failed: " << res->what();
+
+    auto readValues = accessor.readOneDRegister<uint32_t>(*memoryElementRef);
+    ASSERT_TRUE(readValues.has_value()) << "Read register returned error: " << readValues.assume_error().what();
+
+    const auto& readValuesVec = readValues.assume_value();
+    ASSERT_EQ(testValues.size(), readValuesVec.size()) << "Read vector size does not match written size";
+    for (size_t i = 0; i < testValues.size(); ++i) {
+        ASSERT_EQ(testValues[i], readValuesVec[i]) << "Value mismatch at index " << i;
+    }
+}
+TEST_F(ndsDAAccessorFixture, WriteAndReadOneDRegisterUint32MSB1) {
+    std::vector<uint32_t> testValues(NDSDA_TEST_ONEDELEMENTS);
+    for (size_t i = 0; i < testValues.size(); ++i) {
+        testValues[i] = (std::rand() % INT32_MAX) | (1u << 31);
+    }
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECUINT32]);
+    ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
+
+    auto res = accessor.writeOneDRegister<uint32_t>(*memoryElementRef, testValues);
+    ASSERT_FALSE(res.has_value()) << "Write failed: " << res->what();
+
+    auto readValues = accessor.readOneDRegister<uint32_t>(*memoryElementRef);
+    ASSERT_TRUE(readValues.has_value()) << "Read register returned error: " << readValues.assume_error().what();
+
+    const auto& readValuesVec = readValues.assume_value();
+    ASSERT_EQ(testValues.size(), readValuesVec.size()) << "Read vector size does not match written size";
+    for (size_t i = 0; i < testValues.size(); ++i) {
+        ASSERT_EQ(testValues[i], readValuesVec[i]) << "Value mismatch at index " << i;
+    }
+}
+
+TEST_F(ndsDAAccessorFixture, WriteAndReadOneDRegisterInt32) {
+    std::vector<int32_t> testValues(NDSDA_TEST_ONEDELEMENTS);
+    for (size_t i = 0; i < testValues.size(); ++i) {
+        testValues[i] = 2 * ((std::rand() % INT32_MAX) - (INT32_MAX / 2));
+    }
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECINT32]);
+    ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
+
+    auto res = accessor.writeOneDRegister<int32_t>(*memoryElementRef, testValues);
+    ASSERT_FALSE(res.has_value()) << "Write failed: " << res->what();
+
+    auto readValues = accessor.readOneDRegister<int32_t>(*memoryElementRef);
+    ASSERT_TRUE(readValues.has_value()) << "Read register returned error: " << readValues.assume_error().what();
+
+    const auto& readValuesVec = readValues.assume_value();
+    ASSERT_EQ(testValues.size(), readValuesVec.size()) << "Read vector size does not match written size";
+    for (size_t i = 0; i < testValues.size(); ++i) {
+        ASSERT_EQ(testValues[i], readValuesVec[i]) << "Value mismatch at index " << i;
+    }
+}
+
+TEST_F(ndsDAAccessorFixture, WriteAndReadOneDRegisterFloatFixed8) {
+    std::vector<float> testValues(NDSDA_TEST_ONEDELEMENTS);
+    float LSB = 1.0f / static_cast<float>(1 << 8);
+    for (size_t i = 0; i < testValues.size(); ++i) {
+        testValues[i] = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+    }
+    const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECFLOATFIXED8]);
+    ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
+
+    auto res = accessor.writeOneDRegister<float>(*memoryElementRef, testValues);
+    ASSERT_FALSE(res.has_value()) << "Write failed: " << res->what();
+
+    auto readValues = accessor.readOneDRegister<float>(*memoryElementRef);
+    ASSERT_TRUE(readValues.has_value()) << "Read register returned error: " << readValues.assume_error().what();
+
+    const auto& readValuesVec = readValues.assume_value();
+    ASSERT_EQ(testValues.size(), readValuesVec.size()) << "Read vector size does not match written size";
+    for (size_t i = 0; i < testValues.size(); ++i) {
+        ASSERT_NEAR(testValues[i], readValuesVec[i], LSB) << "Value mismatch at index " << i;
+    }
 }
