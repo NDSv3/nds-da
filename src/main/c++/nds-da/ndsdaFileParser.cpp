@@ -64,15 +64,25 @@ Result<std::vector<std::unique_ptr<ndsda::MemoryElement>>> ndsda::FileParser::pa
         return ndsda::ndsdaError("Could not open memory map file: " + memoryMapFile.string());
     }
 
-    std::string path, address, BAR, AccMode;
+    std::string path, address, BAR, AccMode, fixedStr;
     size_t nElements, nBytes, width, fixed, sgnd;
     for (std::string line; std::getline(memMap, line);) {
         if (line.empty() || line[0] == '#' || line[0] == '@')
             continue;
 
         std::istringstream iss(line);
-        if (!(iss >> path >> nElements >> address >> nBytes >> BAR >> width >> fixed >> sgnd >> AccMode)) {
+        if (!(iss >> path >> nElements >> address >> nBytes >> BAR >> width >> fixedStr >> sgnd >> AccMode)) {
             return ndsda::ndsdaError("Malformed line in memory map file: " + line);
+        }
+
+        if (fixedStr == "IEEE754") {
+            fixed = ndsda::NDSDA_MEMORYELEMENT_IEEE754_FRACBITS;
+        } else {
+            try {
+                fixed = std::stoul(fixedStr);
+            } catch (const std::invalid_argument&) {
+                return ndsda::ndsdaError("Invalid fixed point specification in memory map file: " + fixedStr);
+            }
         }
 
         if (nElements == 1) {

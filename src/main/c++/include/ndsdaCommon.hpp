@@ -90,6 +90,7 @@ struct ndsdaError : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
+static const size_t NDSDA_MEMORYELEMENT_IEEE754_FRACBITS = -1;
 struct MemoryElement {
     std::string name;
     size_t fracBits;

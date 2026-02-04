@@ -24,7 +24,7 @@ static const auto expectedMemoryElements = std::to_array<std::shared_ptr<MemoryE
     std::make_shared<RegisterElement>("BASE.INTEGER32", 32, 0, true),
     std::make_shared<RegisterElement>("BASE.UINTEGER32", 32, 0, false),
     std::make_shared<RegisterElement>("BASE.ONEBIT", 1, 0, false),
-    std::make_shared<RegisterElement>("BASE.FLOATBITCAST", 32, 0, false),
+    std::make_shared<RegisterElement>("BASE.FLOATBITCAST", 32, ndsda::NDSDA_MEMORYELEMENT_IEEE754_FRACBITS, false),
     std::make_shared<RegisterElement>("BASE.FLOATFIXED8", 32, 8, true),
     std::make_shared<RegisterElement>("BASE.FLOATFIXED16", 32, 16, true),
     std::make_shared<RegisterElement>("BASE.CUSTOMGETSET", 32, 0, false),
@@ -38,7 +38,7 @@ static const auto expectedMemoryElements = std::to_array<std::shared_ptr<MemoryE
     std::make_shared<OneDElement>("BASE.VECUINT16", NDSDA_TEST_ONEDELEMENTS, 16),
     std::make_shared<OneDElement>("BASE.VECUINT32", NDSDA_TEST_ONEDELEMENTS, 32),
     std::make_shared<OneDElement>("BASE.VECFLOATFIXED8", NDSDA_TEST_ONEDELEMENTS, 32, 8, true),
-    std::make_shared<OneDElement>("BASE.VECFLOATBITCAST", NDSDA_TEST_ONEDELEMENTS, 32),
+    std::make_shared<OneDElement>("BASE.VECFLOATBITCAST", NDSDA_TEST_ONEDELEMENTS, 32, ndsda::NDSDA_MEMORYELEMENT_IEEE754_FRACBITS),
     std::make_shared<OneDElement>("BASE.VECDOUBLE", 2*NDSDA_TEST_ONEDELEMENTS, 32),
 
     std::make_shared<OneDElement>("HUNDREDI32VEC", 100, 32, 0, true),
@@ -49,14 +49,14 @@ static const auto expectedMemoryElements = std::to_array<std::shared_ptr<MemoryE
 
 struct expectedPVIdx {
     enum {
-        INTEGER32 = 0, UINTEGER32, ONEBIT, FLOATBITCAST, FLOATFIXED8, FLOATFIXED16, CUSTOMGETSET, 
+        INTEGER32 = 0, UINTEGER32, ONEBIT, FLOATBITCAST, FLOATFIXED8, FLOATFIXED16, CUSTOMGETSET,
         VECBOOL, VECINT8, VECINT16, VECINT32, VECINT64, VECUINT8, VECUINT16, VECUINT32, VECFLOATFIXED8,
         VECFLOATBITCAST, VECDOUBLE, STRING, ONEI32VEC, HUNDREDI32VEC
     };
 };
 struct expectedMemoryElementIdx {
     enum {
-        INTEGER32 = 1, UINTEGER32, ONEBIT, FLOATBITCAST, FLOATFIXED8, FLOATFIXED16, CUSTOMGETSET, 
+        INTEGER32 = 1, UINTEGER32, ONEBIT, FLOATBITCAST, FLOATFIXED8, FLOATFIXED16, CUSTOMGETSET,
         VECBOOL, VECINT8, VECINT16, VECINT32, VECINT64, VECUINT8, VECUINT16, VECUINT32, VECFLOATFIXED8,
         VECFLOATBITCAST, VECDOUBLE, STRING, ONEI32VEC, HUNDREDI32VEC
     };

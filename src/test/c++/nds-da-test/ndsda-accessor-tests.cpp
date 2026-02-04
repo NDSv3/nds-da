@@ -131,6 +131,20 @@ TEST_F(ndsDAAccessorFixture, WriteReadFloatFixed) {
     ASSERT_FLOAT_EQ(readValue.assume_value(), value) << "Read value does not match written value within tolerance";
 }
 
+TEST_F(ndsDAAccessorFixture, WriteReadFloatBitcast) {
+    const auto me = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::FLOATBITCAST]);
+    ASSERT_NE(me, nullptr) << "Invalid memory element type for test";
+
+    const float value = std::rand() / static_cast<float>(RAND_MAX) * 10000.0f;
+
+    auto writeRes = accessor.writeRegister<float>(*me, value);
+    ASSERT_FALSE(writeRes.has_value()) << "Write failed: " << writeRes->what();
+
+    auto readValue = accessor.readRegister<float>(*me);
+    ASSERT_TRUE(readValue.has_value()) << "Read register returned error: " << readValue.assume_error().what();
+    ASSERT_FLOAT_EQ(readValue.assume_value(), value) << "Read value does not match written value within tolerance";
+}
+
 TEST_F(ndsDAAccessorFixture, WriteReadFloatSmallNumber) {
     const auto me = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::FLOATFIXED16]);
     ASSERT_NE(me, nullptr) << "Invalid memory element type for test";
