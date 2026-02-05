@@ -92,8 +92,16 @@ std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement& reg, 
     template Result<std::vector<Type>> DAAccessor::readOneDRegister(const OneDElement&);        \
     template std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement&, const std::vector<Type>&);
 
+INSTANTIATE_TEMPLATE(int8_t)
+INSTANTIATE_TEMPLATE(uint8_t)
+INSTANTIATE_TEMPLATE(int16_t)
+INSTANTIATE_TEMPLATE(uint16_t)
 INSTANTIATE_TEMPLATE(int32_t)
 INSTANTIATE_TEMPLATE(uint32_t)
+INSTANTIATE_TEMPLATE(int64_t)
+INSTANTIATE_TEMPLATE(uint64_t)
 INSTANTIATE_TEMPLATE(float)
+INSTANTIATE_TEMPLATE(double)
+INSTANTIATE_TEMPLATE(ChimeraTK::Boolean)
 
 #undef INSTANTIATE_TEMPLATE

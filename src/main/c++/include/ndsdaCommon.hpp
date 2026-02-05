@@ -109,10 +109,18 @@ struct MemoryElement {
     virtual bool operator==(const MemoryElement& other) const = 0;
 };
 
-using DARegAccessorVariant = std::variant<
-    ChimeraTK::ScalarRegisterAccessor<uint32_t>,
-    ChimeraTK::ScalarRegisterAccessor<int32_t>,
-    ChimeraTK::ScalarRegisterAccessor<float>>;
+template <typename... Ts>
+using VariantScalarAccessorGenerator = std::variant<ChimeraTK::ScalarRegisterAccessor<Ts>...>;
+template <typename... Ts>
+using VariantOneDAccessorGenerator = std::variant<ChimeraTK::OneDRegisterAccessor<Ts>...>;
+
+#define DA_ACCESSOR_TYPE_LIST int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, \
+                              int64_t, uint64_t, float, double, std::string,         \
+                              ChimeraTK::Boolean, ChimeraTK::Void
+
+using DARegAccessorVariant     = VariantScalarAccessorGenerator<DA_ACCESSOR_TYPE_LIST>;
+using DAOneDRegAccessorVariant = VariantOneDAccessorGenerator<DA_ACCESSOR_TYPE_LIST>;
+#undef DA_ACCESSOR_TYPE_LIST
 
 struct RegisterElement : MemoryElement {
 public:
@@ -132,10 +140,6 @@ public:
     }
 };
 
-using DAOneDRegAccessorVariant = std::variant<
-    ChimeraTK::OneDRegisterAccessor<uint32_t>,
-    ChimeraTK::OneDRegisterAccessor<int32_t>,
-    ChimeraTK::OneDRegisterAccessor<float>>;
 struct OneDElement : MemoryElement {
     size_t elements;
     mutable std::optional<DAOneDRegAccessorVariant> daAccessor;  // Lazy initialization
