@@ -106,95 +106,73 @@ TEST_F(ndsDABasicDeviceFixture, GetNodeMapFile) {
     ASSERT_NE(tmp_time.tv_sec, 0);
 }
 
-TEST_F(ndsDABasicDeviceFixture, WriteReadPVInt32) {
-    int32_t write_value = 12345678;
-    int32_t read_value  = 0;
+#define NDSDA_TESTF_TESTBASE(TYPE, PV_IDX, RANDOM_GEN)                                                        \
+    TYPE read_value;                                                                                          \
+    timespec tmp_time;                                                                                        \
+    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[PV_IDX]->writePV, tmp_time, write_value); \
+    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[PV_IDX]->readPV, &tmp_time, &read_value);
+
+#define NDSDA_TESTF_SCALARPVTEST(TYPE, PV_IDX, RANDOM_GEN)   \
+    TEST_F(ndsDABasicDeviceFixture, WriteReadScalar##TYPE) { \
+        TYPE write_value = (RANDOM_GEN);                     \
+        NDSDA_TESTF_TESTBASE(TYPE, PV_IDX, RANDOM_GEN)       \
+        EXPECT_EQ(write_value, read_value);                  \
+    }
+#define NDSDA_TESTF_SCALARFLOATNEARPVTEST(PV_IDX, RANDOM_GEN, FIXEDBITS)                \
+    TEST_F(ndsDABasicDeviceFixture, WriteReadFloatFixed##FIXEDBITS) {                   \
+        float write_value = (RANDOM_GEN);                                               \
+        NDSDA_TESTF_TESTBASE(float, PV_IDX, RANDOM_GEN)                                 \
+        EXPECT_NEAR(write_value, read_value, 1.0 / static_cast<float>(1 << FIXEDBITS)); \
+    }
+
+#define NDSDA_TESTF_VECTORPVTEST(TYPE, PV_IDX, RANDOM_GEN)          \
+    TEST_F(ndsDABasicDeviceFixture, WriteReadVector##TYPE) {        \
+        std::vector<TYPE> write_value;                              \
+        for (size_t i = 0; i < write_value.size(); i++) {           \
+            write_value.push_back(RANDOM_GEN);                      \
+        }                                                           \
+        NDSDA_TESTF_TESTBASE(std::vector<TYPE>, PV_IDX, RANDOM_GEN) \
+        for (size_t i = 0; i < write_value.size(); ++i) {           \
+            ASSERT_EQ(write_value[i], read_value[i]);               \
+        }                                                           \
+    }
+#define NDSDA_TESTF_VECTORFLOATNEARPVTEST(PV_IDX, RANDOM_GEN, FIXEDBITS)                          \
+    TEST_F(ndsDABasicDeviceFixture, WriteReadVectorFloatFixed##FIXEDBITS) {                       \
+        std::vector<float> write_value;                                                           \
+        for (size_t i = 0; i < write_value.size(); i++) {                                         \
+            write_value.push_back(RANDOM_GEN);                                                    \
+        }                                                                                         \
+        NDSDA_TESTF_TESTBASE(std::vector<float>, PV_IDX, RANDOM_GEN)                              \
+        for (size_t i = 0; i < write_value.size(); ++i) {                                         \
+            ASSERT_NEAR(write_value[i], read_value[i], 1.0 / static_cast<float>(1 << FIXEDBITS)); \
+        }                                                                                         \
+    }
+
+NDSDA_TESTF_SCALARPVTEST(int32_t, expectedPVIdx::INTEGER32, randomSigned(INT32_MAX))
+NDSDA_TESTF_SCALARPVTEST(float, expectedPVIdx::FLOATBITCAST, randomFloat())
+NDSDA_TESTF_SCALARFLOATNEARPVTEST(expectedPVIdx::FLOATFIXED8, randomFloat(), 8)
+NDSDA_TESTF_SCALARFLOATNEARPVTEST(expectedPVIdx::FLOATFIXED16, randomFloat(), 16)
+
+NDSDA_TESTF_VECTORPVTEST(bool, expectedPVIdx::VECBOOL, randomSigned(BOOL_MAX))
+NDSDA_TESTF_VECTORPVTEST(uint8_t, expectedPVIdx::VECUINT8, randomUnsigned(UINT8_MAX))
+NDSDA_TESTF_VECTORPVTEST(uint16_t, expectedPVIdx::VECUINT16, randomUnsigned(UINT16_MAX))
+NDSDA_TESTF_VECTORPVTEST(uint32_t, expectedPVIdx::VECUINT32, randomUnsigned(UINT32_MAX))
+NDSDA_TESTF_VECTORPVTEST(int8_t, expectedPVIdx::VECINT8, randomSigned(INT8_MAX))
+NDSDA_TESTF_VECTORPVTEST(int16_t, expectedPVIdx::VECINT16, randomSigned(INT16_MAX))
+NDSDA_TESTF_VECTORPVTEST(int32_t, expectedPVIdx::VECINT32, randomSigned(INT32_MAX))
+NDSDA_TESTF_VECTORPVTEST(float, expectedPVIdx::VECFLOATBITCAST, randomFloat())
+NDSDA_TESTF_VECTORFLOATNEARPVTEST(expectedPVIdx::VECFLOATFIXED8, randomFloat(), 8)
+
+TEST_F(ndsDABasicDeviceFixture, WriteReadVectorBoolTest) {
+    std::vector<bool> write_value;
+    for (size_t i = 0; i < write_value.size(); i++) {
+        write_value.push_back(std::rand() & 1);
+    }
+    std::vector<bool> read_value;
     timespec tmp_time;
-
-    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::INTEGER32]->writePV, tmp_time, write_value);
-    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::INTEGER32]->readPV, &tmp_time, &read_value);
-
-    EXPECT_EQ(write_value, read_value);
-}
-
-TEST_F(ndsDABasicDeviceFixture, WriteReadPVInt32Negative) {
-    int32_t write_value = -12345678;
-    int32_t read_value  = 0;
-    timespec tmp_time;
-
-    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::INTEGER32]->writePV, tmp_time, write_value);
-    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::INTEGER32]->readPV, &tmp_time, &read_value);
-
-    EXPECT_EQ(write_value, read_value);
-}
-
-// TODO: Should I manage this case? PVs do not support uint32_t
-TEST_F(ndsDABasicDeviceFixture, WriteReadPVUInt32) {
-    uint32_t write_value = std::rand() % UINT32_MAX & ~(1u << 31);  // Set MSB to 0
-    int32_t read_value   = 0;
-    timespec tmp_time;
-
-    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::UINTEGER32]->writePV, tmp_time, std::bit_cast<int32_t>(write_value));
-    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::UINTEGER32]->readPV, &tmp_time, &read_value);
-
-    EXPECT_EQ(write_value, std::bit_cast<int32_t>(read_value));
-}
-
-TEST_F(ndsDABasicDeviceFixture, WriteReadPVUInt32MSB1) {
-    uint32_t write_value = std::rand() % INT32_MAX | (1u << 31);  // Set MSB to 1
-    int32_t read_value   = 0;
-    timespec tmp_time;
-
-    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::UINTEGER32]->writePV, tmp_time, std::bit_cast<int32_t>(write_value));
-    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::UINTEGER32]->readPV, &tmp_time, &read_value);
-
-    EXPECT_EQ(write_value, std::bit_cast<int32_t>(read_value));
-}
-
-TEST_F(ndsDABasicDeviceFixture, WriteReadOneDUInt32) {
-    std::vector<uint32_t> write_values(NDSDA_TEST_ONEDELEMENTS), read_values(NDSDA_TEST_ONEDELEMENTS);
-    timespec tmp_time;
-
-    for (size_t i = 0; i < write_values.size(); ++i) write_values[i] = std::rand() % INT32_MAX;
-
-    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::VECUINT32]->writePV, tmp_time, write_values);
-    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::VECUINT32]->readPV, &tmp_time, &read_values);
-    EXPECT_EQ(write_values.size(), read_values.size());
-    for (size_t i = 0; i < write_values.size(); ++i)
-        EXPECT_EQ(write_values[i], read_values[i]);
-}
-
-TEST_F(ndsDABasicDeviceFixture, WriteReadFloatBitcast) {
-    float write_value = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
-    float read_value;
-    timespec tmp_time;
-
-    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::FLOATBITCAST]->writePV, tmp_time, write_value);
-    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::FLOATBITCAST]->readPV, &tmp_time, &read_value);
-
-    EXPECT_EQ(write_value, read_value);
-}
-
-TEST_F(ndsDABasicDeviceFixture, WriteReadFloatFixed8) {
-    float write_value = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
-    float LSB         = 1.0f / static_cast<float>(1 << 8);
-    float read_value;
-    timespec tmp_time;
-
-    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::FLOATFIXED8]->writePV, tmp_time, write_value);
-    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::FLOATFIXED8]->readPV, &tmp_time, &read_value);
-
-    EXPECT_NEAR(write_value, read_value, LSB);
-}
-
-TEST_F(ndsDABasicDeviceFixture, WriteReadFloatFixed16) {
-    float write_value = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
-    float LSB         = 1.0f / static_cast<float>(1 << 16);
-    float read_value;
-    timespec tmp_time;
-
-    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::FLOATFIXED16]->writePV, tmp_time, write_value);
-    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::FLOATFIXED16]->readPV, &tmp_time, &read_value);
-
-    EXPECT_NEAR(write_value, read_value, LSB);
+    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::VECBOOL]->writePV, tmp_time, write_value);
+    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::VECBOOL]->readPV, &tmp_time, &read_value);
+    for (size_t i = 0; i < write_value.size(); ++i) {
+        ASSERT_EQ(write_value[i], read_value[i]);
+    }
 }

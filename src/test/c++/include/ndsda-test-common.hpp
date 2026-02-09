@@ -41,4 +41,9 @@ class ndsDAAccessorFixture : public testing::Test {
 protected:
     ndsda::DAAccessor accessor{NDSDA_TEST_DMAPFILE, NDSDA_TEST_DEVICEALIAS};
 };
+
+static auto randomSigned(auto max) { return 2 * ((std::rand() % max) - max / 2); }
+static auto randomUnsigned(auto max) { return std::rand() % max; }
+static float randomFloat() { return 2.0f * static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) - 1.0f; }
+
 #endif  //! NDS_DA_TEST_FIXTURE
