@@ -4,6 +4,7 @@
 #include <nds3/ndsTestFactory.h>
 #include <cstdint>
 #include <cstdlib>
+#include <ranges>
 #include <vector>
 #include <memory>
 #include <ctime>
@@ -229,4 +230,34 @@ TEST_F(ndsDABridgeFixture, WriteOneDFloatFixed8) {
     for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {
         ASSERT_NEAR(writeArray[i], readArray[i], LSB) << "WritePV OneD value does not match read value at index " << i;
     }
+}
+
+TEST_F(ndsDABridgeFixture, ReadString) {
+    timespec ts                               = {0, 0};
+    static constexpr std::string randomString = "asdf1234";
+    std::string readStr;
+    std::array<uint8_t, NDSDA_TEST_ONEDELEMENTS> stringArray;
+
+    static_assert(stringArray.size() >= randomString.size());
+    std::copy(randomString.begin(), randomString.end(), stringArray.begin());
+
+    const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::STRING];
+
+    DATestHelper::getInstance().writeOneD(pv->reg, stringArray);
+    bridge.readPV(&ts, &readStr, *pv);
+
+    ASSERT_NE(ts.tv_nsec, 0) << "ReadPV did not set timestamp";
+    ASSERT_NE(ts.tv_sec, 0) << "ReadPV did not set timestamp";
+    ASSERT_EQ(readStr, randomString);
+}
+TEST_F(ndsDABridgeFixture, WriteString) {
+    timespec ts                           = {0, 0};
+    static constexpr std::string writeStr = "xyz0987";
+
+    const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::STRING];
+    bridge.writePV(ts, writeStr, *pv);
+
+    auto readArr = DATestHelper::getInstance().readOneD<uint8_t>(pv->reg) | std::views::take(writeStr.size());
+
+    ASSERT_EQ(writeStr, std::string(readArr.begin(), readArr.end()));
 }

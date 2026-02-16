@@ -20,7 +20,7 @@ const size_t NDSDA_TEST_ONEDELEMENTS = 10;
 // clang-format off
 // WARNING: MUST match the content of MEMORY_MAPFILE with DEVICE_ALIAS
 static const auto expectedMemoryElements = std::to_array<std::shared_ptr<MemoryElement>>({
-    std::make_shared<OneDElement>(".BASE", 137, 32),
+    std::make_shared<OneDElement>(".BASE", 157, 32),
     std::make_shared<RegisterElement>("BASE.INTEGER32", 32, 0, true),
     std::make_shared<RegisterElement>("BASE.UINTEGER32", 32, 0, false),
     std::make_shared<RegisterElement>("BASE.ONEBIT", 1, 0, false),
@@ -40,6 +40,7 @@ static const auto expectedMemoryElements = std::to_array<std::shared_ptr<MemoryE
     std::make_shared<OneDElement>("BASE.VECFLOATFIXED8", NDSDA_TEST_ONEDELEMENTS, 32, 8, true),
     std::make_shared<OneDElement>("BASE.VECFLOATBITCAST", NDSDA_TEST_ONEDELEMENTS, 32, ndsda::NDSDA_MEMORYELEMENT_IEEE754_FRACBITS, true),
     std::make_shared<OneDElement>("BASE.VECDOUBLE", 2*NDSDA_TEST_ONEDELEMENTS, 32),
+    std::make_shared<OneDElement>("BASE.STRING", NDSDA_TEST_ONEDELEMENTS, 8),
 
     std::make_shared<OneDElement>("HUNDREDI32VEC", 100, 32, 0, true),
 });
@@ -51,14 +52,14 @@ struct expectedPVIdx {
     enum {
         INTEGER32 = 0, UINTEGER32, ONEBIT, FLOATBITCAST, FLOATFIXED8, FLOATFIXED16, CUSTOMGETSET,
         VECBOOL, VECINT8, VECINT16, VECINT32, VECINT64, VECUINT8, VECUINT16, VECUINT32, VECFLOATFIXED8,
-        VECFLOATBITCAST, VECDOUBLE, STRING, ONEI32VEC, HUNDREDI32VEC
+        VECFLOATBITCAST, VECDOUBLE, STRING, HUNDREDI32VEC
     };
 };
 struct expectedMemoryElementIdx {
     enum {
         INTEGER32 = 1, UINTEGER32, ONEBIT, FLOATBITCAST, FLOATFIXED8, FLOATFIXED16, CUSTOMGETSET,
         VECBOOL, VECINT8, VECINT16, VECINT32, VECINT64, VECUINT8, VECUINT16, VECUINT32, VECFLOATFIXED8,
-        VECFLOATBITCAST, VECDOUBLE, STRING, ONEI32VEC, HUNDREDI32VEC
+        VECFLOATBITCAST, VECDOUBLE, STRING, HUNDREDI32VEC
     };
 };
 
@@ -81,6 +82,7 @@ static const auto __expectedNodeMapPVs = std::to_array<std::shared_ptr<NodeMapPV
     CREATE_NODEMAP_PV("VECFLOATFIXED8",  "BASE.VECFLOATFIXED8", PTE::VEC_FLOAT,  NDSDA_TEST_ONEDELEMENTS),
     CREATE_NODEMAP_PV("VECFLOATBITCAST", "BASE.VECFLOATBITCAST", PTE::VEC_FLOAT,  NDSDA_TEST_ONEDELEMENTS),
     CREATE_NODEMAP_PV("VECDOUBLE",       "BASE.VECDOUBLE",      PTE::VEC_DOUBLE, NDSDA_TEST_ONEDELEMENTS),
+    CREATE_NODEMAP_PV("STRING",          "BASE.STRING",         PTE::STRING, NDSDA_TEST_ONEDELEMENTS),
     CREATE_NODEMAP_PV("HUNDREDI32VEC",   ".HUNDREDI32VEC",      PTE::VEC_INT32,  100),
 });
 // clang-format on

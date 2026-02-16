@@ -1,6 +1,6 @@
 @MAPFILE_REVISION 0.0.0-11-g2b078ea4-test
 # path                                              nElements     address       nBytes  BAR width fixed sgnd AccMode
-.BASE                                                     137  0x00000000          548    0    32     0    0   RW
+.BASE                                                     157  0x00000000          628    0    32     0    0   RW
 BASE.INTEGER32                                              1  0x00000000            4    0    32     0    1   RW
 BASE.UINTEGER32                                             1  0x00000004            4    0    32     0    0   RW
 BASE.ONEBIT                                                 1  0x00000008            4    0     1     0    0   RW
@@ -24,7 +24,7 @@ BASE.VECUINT32                                             10  0x0000015C       
 BASE.VECFLOATFIXED8                                        10  0x00000184           40    0    32     8    1   RW
 BASE.VECFLOATBITCAST                                       10  0x000001AC           40    0    32 IEEE754  1   RW
 BASE.VECDOUBLE                                             20  0x000001D4           80    0    32     0    0   RW
-# BASE.STRING                                                10  0x00000000           40    0    32     0    0   RW
+BASE.STRING                                                10  0x00000224           40   14     8     0    0   RW
 
 # path                                              nElements     address       nBytes  BAR width fixed sgnd AccMode
 .HUNDREDI32VEC                                            100  0x00000000          400   14    32     0    1   RW

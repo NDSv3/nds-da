@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ndsda:NodeMap 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<ndsda:NodeMap
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ndsda="http://www.example.org/ndsda"
     xsi:schemaLocation="http://www.example.org/ndsda ../../main/ndsdaNodeMapSchema.xsd" >
-    
+
     <ndsda:PVMap>
         <ndsda:PV name="INTEGER32"    register="BASE.INTEGER32"    type="int32"/>
         <!-- NDS does not support unsigned PVs -->
@@ -32,6 +32,8 @@
         <ndsda:PV name="VECFLOATFIXED8"  register="BASE.VECFLOATFIXED8"  type="vector(float)"  nElem="10"/>
         <ndsda:PV name="VECFLOATBITCAST"  register="BASE.VECFLOATBITCAST"  type="vector(float)"  nElem="10"/>
         <ndsda:PV name="VECDOUBLE" register="BASE.VECDOUBLE" type="vector(double)" nElem="10"/>
+
+        <ndsda:PV name="STRING" register="BASE.STRING" type="string" nElem="10"/>
 
         <ndsda:PV name="HUNDREDI32VEC"  register=".HUNDREDI32VEC"  type="vector(int32)"  nElem="100"/>
 
