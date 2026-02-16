@@ -16,7 +16,7 @@ public:
     void readPV(timespec* ts, PVType* value, const NodeMapPV& pv);
 
     template <ndsda::PVDataType PVType>
-    void writePV(timespec ts, PVType value, const NodeMapPV& pv);
+    void writePV(timespec ts, const PVType& value, const NodeMapPV& pv);
 
 private:
     ChimeraTK::Device daDevice;
