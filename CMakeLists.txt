@@ -4,8 +4,27 @@ project(NDS-DeviceAccess)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 cmake_policy(SET CMP0167 OLD)
+
+find_program(CPPCHECK_PATH cppcheck)
+if(CPPCHECK_PATH)
+    set(CMAKE_CXX_CPPCHECK
+        ${CPPCHECK_PATH}
+        --enable=all
+        --inline-suppr
+        --std=c++20
+        --template=gcc
+        --suppress=missingIncludeSystem
+        --suppress=missingInclude
+        --suppress=unusedFunction
+        -I/usr/local/include
+        --suppress=*:*usr/local/*
+        --suppress=*:*_deps/*
+        --quiet
+    )
+endif()
 
 # ------------------------------- Device Access --------------------------------
 find_package(ChimeraTK-DeviceAccess REQUIRED)
