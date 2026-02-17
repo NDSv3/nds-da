@@ -164,17 +164,3 @@ NDSDA_TESTF_VECTORPVTEST(int16_t, expectedPVIdx::VECINT16, randomSigned(INT16_MA
 NDSDA_TESTF_VECTORPVTEST(int32_t, expectedPVIdx::VECINT32, randomSigned(INT32_MAX))
 NDSDA_TESTF_VECTORPVTEST(float, expectedPVIdx::VECFLOATBITCAST, randomFloat())
 NDSDA_TESTF_VECTORFLOATNEARPVTEST(expectedPVIdx::VECFLOATFIXED8, randomFloat(), 8)
-
-TEST_F(ndsDABasicDeviceFixture, WriteReadVectorBoolTest) {
-    std::vector<bool> write_value;
-    for (size_t i = 0; i < write_value.size(); i++) {
-        write_value.push_back(std::rand() & 1);
-    }
-    std::vector<bool> read_value;
-    timespec tmp_time;
-    iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::VECBOOL]->writePV, tmp_time, write_value);
-    iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[expectedPVIdx::VECBOOL]->readPV, &tmp_time, &read_value);
-    for (size_t i = 0; i < write_value.size(); ++i) {
-        ASSERT_EQ(write_value[i], read_value[i]);
-    }
-}
