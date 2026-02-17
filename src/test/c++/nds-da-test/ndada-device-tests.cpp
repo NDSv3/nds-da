@@ -148,8 +148,10 @@ TEST_F(ndsDABasicDeviceFixture, GetNodeMapFile) {
         }                                                                                         \
     }
 
+using String = std::string;
 NDSDA_TESTF_SCALARPVTEST(int32_t, expectedPVIdx::INTEGER32, randomSigned(INT32_MAX))
 NDSDA_TESTF_SCALARPVTEST(float, expectedPVIdx::FLOATBITCAST, randomFloat())
+NDSDA_TESTF_SCALARPVTEST(String, expectedPVIdx::STRING, "TestStr")
 NDSDA_TESTF_SCALARFLOATNEARPVTEST(expectedPVIdx::FLOATFIXED8, randomFloat(), 8)
 NDSDA_TESTF_SCALARFLOATNEARPVTEST(expectedPVIdx::FLOATFIXED16, randomFloat(), 16)
 
