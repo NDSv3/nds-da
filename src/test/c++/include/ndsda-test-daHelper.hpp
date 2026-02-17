@@ -27,21 +27,16 @@ public:
     std::array<T, NDSDA_TEST_ONEDELEMENTS> readOneD(const std::string& oneDName) {
         std::array<T, NDSDA_TEST_ONEDELEMENTS> values;
 
-        ChimeraTK::OneDRegisterAccessor<T> acc = device.getOneDRegisterAccessor<T>(oneDName);
-        acc.read();
-        std::copy(acc.begin(), acc.end(), values.begin());
-
-        return values;
-    }
-
-    template <>
-    std::array<bool, NDSDA_TEST_ONEDELEMENTS> readOneD<bool>(const std::string& oneDName) {
-        std::array<bool, NDSDA_TEST_ONEDELEMENTS> values;
-
-        ChimeraTK::OneDRegisterAccessor<ChimeraTK::Boolean> acc = device.getOneDRegisterAccessor<ChimeraTK::Boolean>(oneDName);
-        acc.read();
-        for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {
-            values[i] = acc[i];
+        if constexpr (std::is_same_v<T, bool>) {
+            ChimeraTK::OneDRegisterAccessor<ChimeraTK::Boolean> acc = device.getOneDRegisterAccessor<ChimeraTK::Boolean>(oneDName);
+            acc.read();
+            for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {
+                values[i] = acc[i];
+            }
+        } else {
+            ChimeraTK::OneDRegisterAccessor<T> acc = device.getOneDRegisterAccessor<T>(oneDName);
+            acc.read();
+            std::copy(acc.begin(), acc.end(), values.begin());
         }
 
         return values;
@@ -49,18 +44,17 @@ public:
 
     template <typename T>
     void writeOneD(const std::string& oneDName, const std::array<T, NDSDA_TEST_ONEDELEMENTS>& values) {
-        ChimeraTK::OneDRegisterAccessor<T> acc = device.getOneDRegisterAccessor<T>(oneDName);
-        std::copy(values.begin(), values.end(), acc.begin());
-        acc.write();
-    }
-
-    template <>
-    void writeOneD<bool>(const std::string& oneDName, const std::array<bool, NDSDA_TEST_ONEDELEMENTS>& values) {
-        ChimeraTK::OneDRegisterAccessor<ChimeraTK::Boolean> acc = device.getOneDRegisterAccessor<ChimeraTK::Boolean>(oneDName);
-        for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {
-            acc[i] = values[i];
+        if constexpr (std::is_same_v<T, bool>) {
+            ChimeraTK::OneDRegisterAccessor<ChimeraTK::Boolean> acc = device.getOneDRegisterAccessor<ChimeraTK::Boolean>(oneDName);
+            for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {
+                acc[i] = values[i];
+            }
+            acc.write();
+        } else {
+            ChimeraTK::OneDRegisterAccessor<T> acc = device.getOneDRegisterAccessor<T>(oneDName);
+            std::copy(values.begin(), values.end(), acc.begin());
+            acc.write();
         }
-        acc.write();
     }
 
     void operator=(const DATestHelper&) = delete;
