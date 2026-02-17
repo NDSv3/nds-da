@@ -4,6 +4,7 @@
 #include <ctime>
 #include <memory>
 #include "ndsda-test-common.hpp"
+#include "ndsda-test-constants.hpp"
 #include "ndsdaFileParser.hpp"
 #include "ndsdaCommon.hpp"
 
@@ -90,6 +91,11 @@ TEST(FileParser, nodeMapFile_validFile_correctPVs) {
             << "Parsed: " << memoryMapPV_toString(*pvsVector[i]) << "\n"
             << "Expected: " << memoryMapPV_toString(*expectedNodeMapPVs[i]) << "\n";
     }
+}
+
+TEST(FileParser, nodeMapFile_PVWithInvalidReadWritePV_exception) {
+    auto pvs = ndsda::FileParser::parseNodeMapFile(NDSDA_TEST_INVALIDPVXML);
+    ASSERT_TRUE(pvs.has_error()) << "Parsing should have failed due to invalid PV read/write names, but it succeeded.";
 }
 
 static const std::string memoryElement_toString(const ndsda::MemoryElement& element) {

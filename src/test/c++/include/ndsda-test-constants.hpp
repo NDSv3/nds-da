@@ -9,11 +9,12 @@
 using PTE = ndsda::PVTypeEnum;
 using ndsda::OneDElement, ndsda::RegisterElement, ndsda::MemoryElement, ndsda::NodeMapPV;
 
-const std::string NDSDA_TEST_DEVICEALIAS = "test_device";
-const std::string NDSDA_TEST_DMAPFILE    = "../src/test/files/test-devices.dmap";
-const std::string NDSDA_TEST_MMAPFILE    = "../src/test/files/test-memory.mmap";
-const std::string NDSDA_TEST_NODEMAPFILE = "../src/test/files/nodeMap.xml";
-const std::string NDSDA_TEST_INVALIDXML  = "../src/test/files/invalidNodeMap.xml";
+const std::string NDSDA_TEST_DEVICEALIAS  = "test_device";
+const std::string NDSDA_TEST_DMAPFILE     = "../src/test/files/test-devices.dmap";
+const std::string NDSDA_TEST_MMAPFILE     = "../src/test/files/test-memory.mmap";
+const std::string NDSDA_TEST_NODEMAPFILE  = "../src/test/files/nodeMap.xml";
+const std::string NDSDA_TEST_INVALIDXML   = "../src/test/files/invalidNodeMap.xml";
+const std::string NDSDA_TEST_INVALIDPVXML = "../src/test/files/invalidPVName.xml";
 
 const size_t NDSDA_TEST_ONEDELEMENTS = 10;
 
@@ -109,8 +110,8 @@ static const auto expectedNodeMapPVs = []() {
             std::move(me)
         );
     }
-    vec[expectedPVIdx::CUSTOMGETSET]->writePV = "CustomGetSet-Setter";
-    vec[expectedPVIdx::CUSTOMGETSET]->readPV  = "CustomGetSet-Getter";
+    vec[expectedPVIdx::CUSTOMGETSET]->writePV = "CustomGetSetSetter";
+    vec[expectedPVIdx::CUSTOMGETSET]->readPV  = "CustomGetSetGetter";
     return vec;
 }();
 

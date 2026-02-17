@@ -10,6 +10,12 @@
 
 #include "ndsdaCommon.hpp"
 
+#define PV_INVALID_CHARACTERS ".-"
+#define CHECK_INVALID_CHARACTERS(STR)                                          \
+    if (STR.find_first_of(PV_INVALID_CHARACTERS) != std::string::npos) {       \
+        return ndsda::ndsdaError(#STR " contains invalid characters: " + STR); \
+    }
+
 using ndsda::Result;
 
 static Result<std::shared_ptr<ndsda::NodeMapPV>> parsePV(const boost::property_tree::ptree& pvTree);
@@ -170,6 +176,12 @@ static Result<std::shared_ptr<ndsda::NodeMapPV>> parsePV(const boost::property_t
     int nElem           = xmlattrs->get_optional<int>("nElem").value_or(1);
     std::string readPV  = pvTree.get_optional<std::string>("ndsda:ReadPV").value_or(nameOpt.get() + ndsda::DAPV_GET_SUFFIX);
     std::string writePV = pvTree.get_optional<std::string>("ndsda:WritePV").value_or(nameOpt.get() + ndsda::DAPV_SET_SUFFIX);
+
+    // Error if contains invalid value (.)
+    std::string& PVname = nameOpt.get();
+    CHECK_INVALID_CHARACTERS(PVname);
+    CHECK_INVALID_CHARACTERS(writePV);
+    CHECK_INVALID_CHARACTERS(readPV);
 
     if (nElem < 1) {
         return ndsda::ndsdaError("Invalid PV element: 'nElem' must be greater or equal to 1. Current value: " + std::to_string(nElem));
