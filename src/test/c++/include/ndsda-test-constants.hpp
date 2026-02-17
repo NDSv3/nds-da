@@ -46,7 +46,7 @@ static const auto expectedMemoryElements = std::to_array<std::shared_ptr<MemoryE
 });
 
 #define CREATE_NODEMAP_PV(name, reg, typeEnum, nElem) \
-    std::make_shared<NodeMapPV>(name, reg, typeEnum, std::string(name) + "-Get", std::string(name) + "-Set", nElem, nullptr)
+    std::make_shared<NodeMapPV>(name, reg, typeEnum, std::string(name) + "Get", std::string(name) + "Set", nElem, nullptr)
 
 struct expectedPVIdx {
     enum {

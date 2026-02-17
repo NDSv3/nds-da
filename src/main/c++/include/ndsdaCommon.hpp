@@ -71,8 +71,8 @@ constexpr bool pvTypeEnum_isScalar(PVTypeEnum type) {
     return (type == PVTypeEnum::INT32 || type == PVTypeEnum::INT64 || type == PVTypeEnum::FLOAT || type == PVTypeEnum::DOUBLE || type == PVTypeEnum::STRING);
 }
 
-const std::string DAPV_GET_SUFFIX = "-Get";
-const std::string DAPV_SET_SUFFIX = "-Set";
+const std::string DAPV_GET_SUFFIX = "Get";
+const std::string DAPV_SET_SUFFIX = "Set";
 
 enum class MemoryElementType {
     SCALAR,
