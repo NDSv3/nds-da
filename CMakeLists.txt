@@ -59,14 +59,14 @@ include(GoogleTest)
 gtest_discover_tests(nds-da-test)
 
 # ------------------------------ NDS-Core Library ------------------------------
-find_library(nds3 
-    NAMES nds3 
-    PATHS /usr/local/lib64 
+find_library(nds3
+    NAMES nds3
+    PATHS /usr/local/lib64
     REQUIRED
 )
-find_library(nds3-testcontrolsystem 
-    NAMES nds3-testcontrolsystem 
-    PATHS /usr/local/lib64 
+find_library(nds3-testcontrolsystem
+    NAMES nds3-testcontrolsystem
+    PATHS /usr/local/lib64
     REQUIRED
 )
 
@@ -75,3 +75,41 @@ target_include_directories(nds-da PRIVATE /usr/local/include)
 
 target_link_libraries(nds-da-test PRIVATE nds3-testcontrolsystem)
 target_include_directories(nds-da-test PRIVATE /usr/local/include)
+
+option(ENABLE_COVERAGE "Enable GCC/Clang coverage instrumentation" OFF)
+
+if(ENABLE_COVERAGE)
+    add_library(coverage_flags INTERFACE)
+    target_compile_options(coverage_flags INTERFACE -O0 -g --coverage)
+    target_link_options(coverage_flags INTERFACE --coverage)
+
+    target_link_libraries(nds-da PRIVATE coverage_flags)
+    target_link_libraries(nds-da-test PRIVATE coverage_flags)
+
+    set(COVERAGE_DIR "${CMAKE_BINARY_DIR}/coverage")
+    find_program(LCOV_EXECUTABLE lcov)
+    find_program(GENHTML_EXECUTABLE genhtml)
+
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -print-prog-name=gcov
+        OUTPUT_VARIABLE GCOV_EXECUTABLE
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if(NOT GCOV_EXECUTABLE)
+        find_program(GCOV_EXECUTABLE gcov)
+    endif()
+
+    add_custom_target(coverage
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR}
+        COMMAND ${LCOV_EXECUTABLE} --gcov-tool ${GCOV_EXECUTABLE} --directory . --zerocounters
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        COMMAND ${LCOV_EXECUTABLE} --gcov-tool ${GCOV_EXECUTABLE} --capture --directory . --ignore-errors mismatch --output-file ${COVERAGE_DIR}/coverage.info
+        COMMAND ${LCOV_EXECUTABLE} --remove ${COVERAGE_DIR}/coverage.info
+            "${CMAKE_BINARY_DIR}/*" "${CMAKE_BINARY_DIR}/_deps/*" "/usr/*"
+            --ignore-errors unused --output-file ${COVERAGE_DIR}/coverage.filtered.info
+        COMMAND ${GENHTML_EXECUTABLE} ${COVERAGE_DIR}/coverage.filtered.info --output-directory ${COVERAGE_DIR}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS nds-da-test
+    )
+endif()
