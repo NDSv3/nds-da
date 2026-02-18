@@ -10,7 +10,7 @@ concept DARegisterType = ChimeraTK::user_type<T>;
 
 class DAAccessor {
 public:
-    DAAccessor(std::string dmapFilePath, std::string deviceName);
+    DAAccessor(const std::string& dmapFilePath, const std::string& deviceName);
     ~DAAccessor();
 
     template <DARegisterType RegisterType>

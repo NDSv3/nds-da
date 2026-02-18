@@ -4,7 +4,7 @@
 using nds::NdsError;
 using ndsda::DAAccessor, ndsda::Result, ndsda::ndsdaError, ndsda::DARegisterType;
 
-DAAccessor::DAAccessor(std::string dmapFilePath, std::string deviceName) {
+DAAccessor::DAAccessor(const std::string& dmapFilePath, const std::string& deviceName) {
     try {
         ChimeraTK::setDMapFilePath(dmapFilePath);
         daDevice.open(deviceName);

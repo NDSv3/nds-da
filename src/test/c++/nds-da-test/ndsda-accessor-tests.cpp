@@ -189,7 +189,7 @@ TEST_F(ndsDAAccessorFixture, ReadOneDRegisterExceedingElementsFails) {
 TEST_F(ndsDAAccessorFixture, WriteAndReadOneDRegisterUint32MSB0) {
     std::vector<uint32_t> testValues(NDSDA_TEST_ONEDELEMENTS);
     for (size_t i = 0; i < testValues.size(); ++i) {
-        testValues[i] = (std::rand() % INT32_MAX) & ~(1 << 31);
+        testValues[i] = (std::rand() % INT32_MAX) & ~(1u << 31);
     }
     const auto memoryElementRef = dynamic_pointer_cast<ndsda::OneDElement>(expectedMemoryElements[expectedMemoryElementIdx::VECUINT32]);
     ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";

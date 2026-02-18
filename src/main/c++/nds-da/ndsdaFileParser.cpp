@@ -125,7 +125,7 @@ Result<std::vector<std::shared_ptr<ndsda::NodeMapPV>>> ndsda::FileParser::parseN
     if (!pvMap) return ndsda::ndsdaError("Invalid node map file: Missing PVMap element.");
 
     std::vector<std::shared_ptr<ndsda::NodeMapPV>> nodeMapPVs;
-    for (auto& pv : pvMap.get()) {
+    for (const auto& pv : pvMap.get()) {
         if (pv.first == "ndsda:PV") {
             BOOST_OUTCOME_TRY(auto res, parsePV(pv.second));
             nodeMapPVs.push_back(res);
@@ -178,7 +178,7 @@ static Result<std::shared_ptr<ndsda::NodeMapPV>> parsePV(const boost::property_t
     std::string writePV = pvTree.get_optional<std::string>("ndsda:WritePV").value_or(nameOpt.get() + ndsda::DAPV_SET_SUFFIX);
 
     // Error if contains invalid value (.)
-    std::string& PVname = nameOpt.get();
+    const std::string& PVname = nameOpt.get();
     CHECK_INVALID_CHARACTERS(PVname);
     CHECK_INVALID_CHARACTERS(writePV);
     CHECK_INVALID_CHARACTERS(readPV);

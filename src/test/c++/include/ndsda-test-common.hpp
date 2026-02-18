@@ -15,7 +15,7 @@ protected:
     nds::namedParameters_t params;
     nds::tests::TestControlSystemInterfaceImpl* iface;
 
-    ndsDABasicDeviceFixture() : factory("test") {
+    ndsDABasicDeviceFixture() : factory("test"), iface(nullptr) {
         params.emplace("DeviceAlias", NDSDA_TEST_DEVICEALIAS);
         params.emplace("DeviceMapFile", NDSDA_TEST_DMAPFILE);
         params.emplace("NodeMapFile", NDSDA_TEST_NODEMAPFILE);

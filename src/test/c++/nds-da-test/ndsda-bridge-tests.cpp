@@ -236,7 +236,7 @@ TEST_F(ndsDABridgeFixture, ReadString) {
     timespec ts                               = {0, 0};
     static constexpr std::string randomString = "asdf1234";
     std::string readStr;
-    std::array<uint8_t, NDSDA_TEST_ONEDELEMENTS> stringArray;
+    std::array<uint8_t, NDSDA_TEST_ONEDELEMENTS> stringArray{};
 
     static_assert(stringArray.size() >= randomString.size());
     std::copy(randomString.begin(), randomString.end(), stringArray.begin());
