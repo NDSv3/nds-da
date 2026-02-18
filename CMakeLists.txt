@@ -16,9 +16,12 @@ if(CPPCHECK_PATH)
         --inline-suppr
         --std=c++20
         --template=gcc
+        --check-level=exhaustive
         --suppress=missingIncludeSystem
         --suppress=missingInclude
         --suppress=unusedFunction
+        --suppress=unmatchedSuppression
+        --suppress=checkersReport
         -I/usr/local/include
         --suppress=*:*usr/local/*
         --suppress=*:*_deps/*
@@ -131,4 +134,45 @@ if(ENABLE_COVERAGE)
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DEPENDS nds-da-test
     )
+endif()
+
+find_program(VALGRIND_EXECUTABLE valgrind)
+if(VALGRIND_EXECUTABLE)
+    set(VALGRIND_SUPPRESSIONS_FILE "${CMAKE_BINARY_DIR}/valgrind.supp")
+    set(VALGRIND_SUPPRESSIONS_SCRIPT "${CMAKE_BINARY_DIR}/write_valgrind_supp.cmake")
+    file(WRITE ${VALGRIND_SUPPRESSIONS_SCRIPT}
+    "file(WRITE \"${VALGRIND_SUPPRESSIONS_FILE}\" [=[
+    {
+        deps-googletest-cond
+        Memcheck:Cond
+        ...
+        obj:*/_deps/*
+        ...
+    }
+
+    {
+        deps-googletest-leaks
+        Memcheck:Leak
+        ...
+        obj:*/_deps/*
+        ...
+    }
+    ]=])\n")
+    add_custom_target(valgrind-test
+          COMMAND ${CMAKE_COMMAND} -P ${VALGRIND_SUPPRESSIONS_SCRIPT}
+        COMMAND ${VALGRIND_EXECUTABLE}
+            --leak-check=full
+            --show-leak-kinds=all
+            --track-origins=yes
+            --error-exitcode=1
+            --suppressions=${VALGRIND_SUPPRESSIONS_FILE}
+            --xml=yes
+            --xml-file=${CMAKE_BINARY_DIR}/valgrind.xml
+            $<TARGET_FILE:nds-da-test>
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS nds-da-test
+        USES_TERMINAL
+    )
+else()
+    message(WARNING "valgrind not found: custom target 'valgrind-test' will not be available")
 endif()
