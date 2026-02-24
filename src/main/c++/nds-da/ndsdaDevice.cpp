@@ -19,10 +19,10 @@
         throw nds::NdsError("Missing " #paramName " parameter"); \
     }
 
-using ndsda::Device;
+using ndsda::ndsdaDevice;
 using ndsda::Result;
 
-Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
+ndsdaDevice::ndsdaDevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
     : deviceName(deviceName),
       rootNode(deviceName) {
     nds::PVVariableIn<std::string> deviceAliasPV("deviceAlias"),
@@ -74,9 +74,9 @@ Device::Device(nds::Factory& factory, const std::string& deviceName, const nds::
     rootNode.initialize(this, factory);
 }
 
-Device::~Device() {}
+ndsdaDevice::~ndsdaDevice() {}
 
-std::optional<ndsda::ndsdaError> Device::mergeMapElements(
+std::optional<ndsda::ndsdaError> ndsdaDevice::mergeMapElements(
     std::vector<std::unique_ptr<ndsda::MemoryElement>>& memoryElements,
     std::vector<std::shared_ptr<ndsda::NodeMapPV>>& nodeMapPVs
 ) {
@@ -102,7 +102,7 @@ std::optional<ndsda::ndsdaError> Device::mergeMapElements(
     return std::nullopt;  // OK
 }
 
-std::optional<ndsda::ndsdaError> Device::generatePVs(const ndsda::NodeMapPV& nodeMapPV) {
+std::optional<ndsda::ndsdaError> ndsdaDevice::generatePVs(const ndsda::NodeMapPV& nodeMapPV) {
     auto readLambda = [&b = this->daBridge, &pv = nodeMapPV]<PVDataType T>(timespec* ts, T* value) {
         b->readPV(ts, value, pv);
     };
@@ -119,5 +119,3 @@ std::optional<ndsda::ndsdaError> Device::generatePVs(const ndsda::NodeMapPV& nod
 
     return std::nullopt;  // OK
 }
-
-NDS_DEFINE_DRIVER(DADevice, Device)

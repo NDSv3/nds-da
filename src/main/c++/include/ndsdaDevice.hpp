@@ -10,10 +10,9 @@
 
 namespace ndsda {
 
-class Device {
+class ndsdaDevice {
 private:
     std::string deviceName, deviceAlias, deviceMapFile, memoryMapFile, nodeMapFile;
-    nds::Port rootNode;
 
     std::unique_ptr<DABridge> daBridge;
     std::vector<std::shared_ptr<ndsda::NodeMapPV>> nodeMapPVs;
@@ -28,9 +27,10 @@ private:
     );
     std::optional<ndsda::ndsdaError> generatePVs(const ndsda::NodeMapPV& nodeMapPV);
 
-public:
-    Device(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params);
-    ~Device();
+protected:
+    ndsdaDevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params);
+    ~ndsdaDevice();
+    nds::Port rootNode;
 };
 
 }  // namespace ndsda

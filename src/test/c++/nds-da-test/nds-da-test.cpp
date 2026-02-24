@@ -2,6 +2,10 @@
 #include <nds3/nds.h>
 #include <nds3/ndsTestFactory.h>
 #include <ctime>
+#include "ndsda-test-device.hpp"
+
+using ndsda::Device;
+NDS_DEFINE_DRIVER(DADevice, Device)
 
 int main(int argc, char** argv) {
     nds::Factory factory(std::shared_ptr<nds::FactoryBaseImpl>(new nds::tests::TestControlSystemFactoryImpl()));

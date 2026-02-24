@@ -8,6 +8,7 @@
 #include "ndsdaBridge.hpp"
 
 #include "ndsda-test-constants.hpp"
+#include "ndsda-test-device.hpp"
 
 class ndsDABasicDeviceFixture : public testing::Test {
 protected:
