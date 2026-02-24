@@ -138,25 +138,27 @@ if(ENABLE_COVERAGE)
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
     )
-    if(NOT GCOV_EXECUTABLE)
-        find_program(GCOV_EXECUTABLE gcov)
+    if(NOT GCOVR_EXECUTABLE)
+        find_program(GCOVR_EXECUTABLE gcovr)
     endif()
 
     add_custom_target(coverage
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR}
-        COMMAND ${LCOV_EXECUTABLE} --gcov-tool ${GCOV_EXECUTABLE} --directory . --zerocounters
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR} 
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR}/details
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR}/nested
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-        COMMAND ${LCOV_EXECUTABLE} --gcov-tool ${GCOV_EXECUTABLE} --capture --directory . --ignore-errors mismatch --output-file ${COVERAGE_DIR}/coverage.info
-        COMMAND ${LCOV_EXECUTABLE} --remove ${COVERAGE_DIR}/coverage.info
-            "${CMAKE_BINARY_DIR}/*" "${CMAKE_BINARY_DIR}/_deps/*" "/usr/*"
-            --ignore-errors unused --output-file ${COVERAGE_DIR}/coverage.filtered.info
         COMMAND ${GENHTML_EXECUTABLE} ${COVERAGE_DIR}/coverage.filtered.info --output-directory ${COVERAGE_DIR}
+        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} --html-details ${COVERAGE_DIR}/details/coverage.html
+        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} --html-nested ${COVERAGE_DIR}/nested/coverage.html
+        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} -x ${COVERAGE_DIR}/coverage.xml
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DEPENDS nds-da-test
     )
 endif()
 
 find_program(VALGRIND_EXECUTABLE valgrind)
+find_program(CG_ANNOTATE_EXECUTABLE cg_annotate)
+find_program(CALLGRIND_ANNOTATE_EXECUTABLE callgrind_annotate)
 if(VALGRIND_EXECUTABLE)
     set(VALGRIND_SUPPRESSIONS_FILE "${CMAKE_BINARY_DIR}/valgrind.supp")
     set(VALGRIND_SUPPRESSIONS_SCRIPT "${CMAKE_BINARY_DIR}/write_valgrind_supp.cmake")
@@ -186,13 +188,106 @@ if(VALGRIND_EXECUTABLE)
             --track-origins=yes
             --error-exitcode=1
             --suppressions=${VALGRIND_SUPPRESSIONS_FILE}
-            --xml=yes
-            --xml-file=${CMAKE_BINARY_DIR}/valgrind.xml
+            --log-file=${CMAKE_BINARY_DIR}/valgrind.log
             $<TARGET_FILE:nds-da-test>
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DEPENDS nds-da-test
         USES_TERMINAL
     )
+    # Cachegrind: CPU cache profiling
+    add_custom_target(valgrind-cachegrind
+        COMMAND ${CMAKE_COMMAND} -P ${VALGRIND_SUPPRESSIONS_SCRIPT}
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_BINARY_DIR}/cachegrind.out.*
+        COMMAND ${VALGRIND_EXECUTABLE}
+            --tool=cachegrind
+            --cachegrind-out-file=${CMAKE_BINARY_DIR}/cachegrind.out.%p
+            --suppressions=${VALGRIND_SUPPRESSIONS_FILE}
+            $<TARGET_FILE:nds-da-test>
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS nds-da-test
+        USES_TERMINAL
+    )
+
+    # Callgrind: call-graph profiling (useful for generating flamegraphs/Callgrind analysis)
+    add_custom_target(valgrind-callgrind
+        COMMAND ${CMAKE_COMMAND} -P ${VALGRIND_SUPPRESSIONS_SCRIPT}
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_BINARY_DIR}/callgrind.out.*
+        COMMAND ${VALGRIND_EXECUTABLE}
+            --tool=callgrind
+            --collect-jumps=yes
+            --callgrind-out-file=${CMAKE_BINARY_DIR}/callgrind.out.%p
+            --suppressions=${VALGRIND_SUPPRESSIONS_FILE}
+            $<TARGET_FILE:nds-da-test>
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS nds-da-test
+        USES_TERMINAL
+    )
+
+    # Combined target: run Memcheck (xml), then Cachegrind, then Callgrind sequentially
+    add_custom_target(valgrind-all
+        COMMAND ${CMAKE_COMMAND} -P ${VALGRIND_SUPPRESSIONS_SCRIPT}
+        # Memcheck (will stop on errors because of --error-exitcode=1)
+        COMMAND ${VALGRIND_EXECUTABLE}
+            --leak-check=full
+            --show-leak-kinds=all
+            --track-origins=yes
+            --error-exitcode=1
+            --suppressions=${VALGRIND_SUPPRESSIONS_FILE}
+            --xml=yes
+            --xml-file=${CMAKE_BINARY_DIR}/valgrind.xml
+            $<TARGET_FILE:nds-da-test>
+        # Cachegrind
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_BINARY_DIR}/cachegrind.out.*
+        COMMAND ${VALGRIND_EXECUTABLE}
+            --tool=cachegrind
+            --cachegrind-out-file=${CMAKE_BINARY_DIR}/cachegrind.out.%p
+            --suppressions=${VALGRIND_SUPPRESSIONS_FILE}
+            $<TARGET_FILE:nds-da-test>
+        # Callgrind
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_BINARY_DIR}/callgrind.out.*
+        COMMAND ${VALGRIND_EXECUTABLE}
+            --tool=callgrind
+            --collect-jumps=yes
+            --callgrind-out-file=${CMAKE_BINARY_DIR}/callgrind.out.%p
+            --suppressions=${VALGRIND_SUPPRESSIONS_FILE}
+            $<TARGET_FILE:nds-da-test>
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS nds-da-test
+        USES_TERMINAL
+    )
+
+    # Post-build annotations: if annotate tools are present, convert the most
+    # recent cachegrind/callgrind outputs to text summaries.
+    if(CG_ANNOTATE_EXECUTABLE)
+        add_custom_command(TARGET valgrind-all POST_BUILD
+            COMMAND /bin/sh -c "f=$(ls -1t created \"${CMAKE_BINARY_DIR}/cachegrind.out.*\" 2>/dev/null | head -n1); \"${CG_ANNOTATE_EXECUTABLE}\" \"$f\" \"${CMAKE_BINARY_DIR}/cachegrind.txt\""
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        )
+    endif()
+
+    if(CALLGRIND_ANNOTATE_EXECUTABLE)
+        add_custom_command(TARGET valgrind-all POST_BUILD
+            COMMAND /bin/sh -c "f=$(ls -1t created \"${CMAKE_BINARY_DIR}/callgrind.out.*\" 2>/dev/null | head -n1); \"${CALLGRIND_ANNOTATE_EXECUTABLE}\" \"$f\" \"${CMAKE_BINARY_DIR}/callgrind.txt\""
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        )
+    endif()
 else()
     message(WARNING "valgrind not found: custom target 'valgrind-test' will not be available")
+endif()
+
+# ------------------------------ Performance Target ---------------------------
+find_program(PERF_EXECUTABLE perf)
+find_program(FLAMEGRAPH_CARGO_EXECUTABLE flamegraph)
+
+if(PERF_EXECUTABLE AND FLAMEGRAPH_CARGO_EXECUTABLE)
+    add_custom_target(perf-flame
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_BINARY_DIR}/perf.data ${CMAKE_BINARY_DIR}/flamegraph.svg
+        COMMAND ${PERF_EXECUTABLE} record -F 200 -g --call-graph fp -o ${CMAKE_BINARY_DIR}/perf.data -- $<TARGET_FILE:nds-da-test>
+        COMMAND ${FLAMEGRAPH_CARGO_EXECUTABLE} --perfdata ${CMAKE_BINARY_DIR}/perf.data -o ${CMAKE_BINARY_DIR}/flamegraph.svg --min-width 1 --title "NDS-DeviceAccess gTest Flamegraph "
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS nds-da-test
+        USES_TERMINAL
+    )
+else()
+    message(WARNING "'perf' or 'flamegraph' not found.")
 endif()
