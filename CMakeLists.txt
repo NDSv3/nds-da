@@ -47,6 +47,26 @@ target_link_libraries(nds-da PRIVATE nds3 ChimeraTK-DeviceAccess atomic)
 target_compile_options(nds-da PRIVATE -Wall -Wextra -Wpedantic)
 set(CMAKE_CXX_CLANG_TIDY clang-tidy)
 
+# ------------------------------ Package Configuration ------------------------------
+install(
+    TARGETS nds-da
+    LIBRARY DESTINATION lib64
+    ARCHIVE DESTINATION lib64
+)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/main/c++/include/
+        DESTINATION include)
+
+set(CPACK_GENERATOR "RPM")
+set(CPACK_PACKAGE_NAME "nds-deviceaccess")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_MANTAINER "David Andrino <david.andrino@upm.es>")
+set(CPACK_PACKAGE_RELEASE 1)
+set(CPACK_PACKAGE_DESCRIPTION "Compatibility layer for NDS3-based devices to be used with ChimeraTK-DeviceAccess.")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "NDS3 - Deviceaccess compatibility layer")
+set(CPACK_RPM_PACKAGE_LICENSE "ITER")
+set(CPACK_PACKAGE_VENDOR "I2A2")
+include(CPack)
+
 # ------------------------------ Tests ------------------------------
 cmake_policy(SET CMP0135 NEW)
 include(FetchContent)
