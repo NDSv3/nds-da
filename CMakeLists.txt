@@ -65,6 +65,7 @@ set(CPACK_PACKAGE_DESCRIPTION "Compatibility layer for NDS3-based devices to be 
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "NDS3 - Deviceaccess compatibility layer")
 set(CPACK_RPM_PACKAGE_LICENSE "ITER")
 set(CPACK_PACKAGE_VENDOR "I2A2")
+set(CPACK_RPM_SPEC_MORE_DEFINE "%define _build_id_links none")
 include(CPack)
 
 # ------------------------------ Tests ------------------------------
@@ -143,11 +144,10 @@ if(ENABLE_COVERAGE)
     endif()
 
     add_custom_target(coverage
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR} 
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR}/details
         COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR}/nested
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-        COMMAND ${GENHTML_EXECUTABLE} ${COVERAGE_DIR}/coverage.filtered.info --output-directory ${COVERAGE_DIR}
         COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} --html-details ${COVERAGE_DIR}/details/coverage.html
         COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} --html-nested ${COVERAGE_DIR}/nested/coverage.html
         COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} -x ${COVERAGE_DIR}/coverage.xml
