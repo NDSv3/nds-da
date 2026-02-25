@@ -1,0 +1,45 @@
+image: registry.i2a2.local/nds-deviceaccess:latest
+
+stages:
+    - build-test
+    - deploy
+
+build-sources:
+    stage: build-test
+    script:
+        - cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
+        - cmake --build build --target all
+        - ctest --test-dir build --output-on-failure --output-junit tests.xml
+        - cmake --build build --target coverage
+    artifacts:
+        reports:
+            junit: build/tests.xml
+            coverage_report:
+                coverage_format: cobertura
+                path: build/coverage/coverage.xml
+        paths:
+            - build/coverage/details
+build-docs:
+    stage: build-test
+    script:
+        - "echo TODO: Build documentation"
+        - cp -r docs public
+    artifacts:
+        paths:
+            - public
+        expire_in: 1 min
+
+pages:
+    stage: deploy
+    needs:
+        - job: build-sources
+          artifacts: true
+        - job: build-docs
+          artifacts: true
+    script:
+        - mkdir -p public/coverage
+        - cp -r build/coverage/details/* public/coverage/
+    artifacts:
+        paths:
+            - public
+    pages: true
