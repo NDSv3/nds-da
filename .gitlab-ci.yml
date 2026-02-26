@@ -23,7 +23,8 @@ build-docs:
     stage: build-test
     script:
         - "echo TODO: Build documentation"
-        - cp -r docs public
+        - mkdir -p public
+        - cp -r docs/* public
     artifacts:
         paths:
             - public

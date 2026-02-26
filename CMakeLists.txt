@@ -41,20 +41,43 @@ add_library(nds-da SHARED
     "src/main/c++/nds-da/ndsdaAccessor.cpp"
 )
 target_include_directories(nds-da PUBLIC
-    "src/main/c++/include"
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/main/c++/include>
+    $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(nds-da PRIVATE nds3 ChimeraTK-DeviceAccess atomic)
 target_compile_options(nds-da PRIVATE -Wall -Wextra -Wpedantic)
 set(CMAKE_CXX_CLANG_TIDY clang-tidy)
 
 # ------------------------------ Package Configuration ------------------------------
+include(CMakePackageConfigHelpers)
+
 install(
     TARGETS nds-da
+    EXPORT nds-daTarget
     LIBRARY DESTINATION lib64
     ARCHIVE DESTINATION lib64
 )
+install(
+    EXPORT nds-daTarget
+    FILE nds-daTargets.cmake
+    NAMESPACE nds-da::
+    DESTINATION lib64/cmake/nds-da
+)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/main/c++/include/
         DESTINATION include)
+
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/nds-daConfig.cmake.in"
+    "@PACKAGE_INIT@\n"
+    "include(\"\${CMAKE_CURRENT_LIST_DIR}/nds-daTargets.cmake\")\n"
+)
+configure_package_config_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/nds-daConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/nds-daConfig.cmake"
+    INSTALL_DESTINATION lib64/cmake/nds-da
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/nds-daConfig.cmake"
+    DESTINATION lib64/cmake/nds-da
+)
 
 set(CPACK_GENERATOR "RPM")
 set(CPACK_PACKAGE_NAME "nds-deviceaccess")
@@ -66,9 +89,13 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "NDS3 - Deviceaccess compatibility layer")
 set(CPACK_RPM_PACKAGE_LICENSE "ITER")
 set(CPACK_PACKAGE_VENDOR "I2A2")
 set(CPACK_RPM_SPEC_MORE_DEFINE "%define _build_id_links none")
+set(CPACK_RPM_PACKAGE_AUTOREQ 0) # TODO: Set requires / Fix so locations
+set(CPACK_RPM_PACKAGE_AUTOPROV 1) # TODO: Set provides
+
 include(CPack)
 
 # ------------------------------ Tests ------------------------------
+set(INSTALL_GTEST "OFF")
 cmake_policy(SET CMP0135 NEW)
 include(FetchContent)
 FetchContent_Declare( googletest
