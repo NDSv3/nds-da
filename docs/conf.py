@@ -13,7 +13,7 @@ author = 'David Andrino - I2A2'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = [ "breathe", "exhale" ]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
@@ -23,3 +23,23 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'furo'
 html_static_path = ['_static']
+
+breathe_projects = {
+    "NDS-DeviceAccess": "_doxygen/xml"
+}
+breathe_default_project = "NDS-DeviceAccess"
+
+exhale_args = {
+    "containmentFolder":     "./_exhale",
+    "rootFileName":          "ndsda-api.rst",
+    "rootFileTitle":         "API Reference",
+    "doxygenStripFromPath":  "../src/main/c++/include",
+
+    "createTreeView":        False,
+    "exhaleExecutesDoxygen": True,
+    "contentsDirectives": False,
+    "exhaleDoxygenStdin":    """
+        INPUT      = ../src/main/c++/include
+        RECURSIVE  = YES
+    """,
+}

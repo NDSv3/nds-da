@@ -5,24 +5,24 @@ To compile and install the library, follow these steps:
 
 #. Clone the repository and navigate to the project directory:
 
-..  code-block:: console
+   ..  code-block:: console
 
-    git clone <repository_url>
-    cd nds-deviceaccess
+       git clone <repository_url>
+       cd nds-deviceaccess
 
 #. Initialize the CMake build system and build the project:
 
-..  code-block:: console
+   ..  code-block:: console
 
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
-    cmake --build build -- -j$(nproc)
-    cmake --build build --target package
+       cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+       cmake --build build -- -j$(nproc)
+       cmake --build build --target package
 
 #. Install the library:
 
-..  code-block:: console
+   ..  code-block:: console
 
-    sudo dnf install build/<package-name>.rpm
+       sudo dnf install build/<package-name>.rpm
 
 Unit tests
 ----------

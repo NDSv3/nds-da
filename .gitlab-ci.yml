@@ -1,30 +1,33 @@
-image: registry.i2a2.local/nds-deviceaccess:latest
+# image: registry.i2a2.local/nds-deviceaccess:latest
 
 stages:
     - build-test
     - deploy
 
-build-sources:
-    stage: build-test
-    script:
-        - cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
-        - cmake --build build --target all
-        - ctest --test-dir build --output-on-failure --output-junit tests.xml
-        - cmake --build build --target coverage
-    artifacts:
-        reports:
-            junit: build/tests.xml
-            coverage_report:
-                coverage_format: cobertura
-                path: build/coverage/coverage.xml
-        paths:
-            - build/coverage/details
+# build-sources:
+#     stage: build-test
+#     script:
+#         - cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
+#         - cmake --build build --target all
+#         - ctest --test-dir build --output-on-failure --output-junit tests.xml
+#         - cmake --build build --target coverage
+#     artifacts:
+#         reports:
+#             junit: build/tests.xml
+#             coverage_report:
+#                 coverage_format: cobertura
+#                 path: build/coverage/coverage.xml
+#         paths:
+#             - build/coverage/details
 build-docs:
+    image: nakatt/doxygen
     stage: build-test
     script:
-        - "echo TODO: Build documentation"
+        - cd docs
+        - pip install -r docs/requirements.txt
+        - make -C docs html
         - mkdir -p public
-        - cp -r docs/* public
+        - cp -r docs/_build/html/* public/
     artifacts:
         paths:
             - public
@@ -33,13 +36,14 @@ build-docs:
 pages:
     stage: deploy
     needs:
-        - job: build-sources
-          artifacts: true
+        # - job: build-sources
+        #   artifacts: true
         - job: build-docs
           artifacts: true
     script:
-        - mkdir -p public/coverage
-        - cp -r build/coverage/details/* public/coverage/
+        - echo "Deploying to GitLab Pages..."
+    #     - mkdir -p public/coverage
+    #     - cp -r build/coverage/details/* public/coverage/
     artifacts:
         paths:
             - public

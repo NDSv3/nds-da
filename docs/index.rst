@@ -13,9 +13,4 @@ NDS-DeviceAccess Documentation
    implementation_details.rst
    compilation.rst
    driver_implementation.rst
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
+   _exhale/ndsda-api.rst

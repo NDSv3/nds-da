@@ -1,7 +1,7 @@
 Driver implementation
 =====================
 
-To implement a driver using NDS-DeviceAccess, the main task is to create a class that inherits from ``ndsda::ndsdaDevice``, which . The base class automatically parses all required files and generates the defined PVs for DA communication. Additional PVs and Nodes can be instantiated and added to the device as needed.
+To implement a driver using NDS-DeviceAccess, the main task is to create a class that inherits from :cpp:class:`ndsda::ndsdaDevice`, which . The base class automatically parses all required files and generates the defined PVs for DA communication. Additional PVs and Nodes can be instantiated and added to the device as needed.
 
 The required configuration parameters for the device are:
 

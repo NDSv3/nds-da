@@ -35,6 +35,23 @@ namespace ndsda {
  *
  * On initialization, the device will parse the device map to find the memory map file, then parse
  * the memory map and node map files to create the appropriate PVs and register them in the NDS tree.
+ *
+ * Minimal inheritance example:
+ *
+ * ```cpp
+ * #include <ndsdaDevice.hpp>
+ *
+ * class MyDevice : public ndsda::ndsdaDevice {
+ * public:
+ *    MyDevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
+ *        : ndsda::ndsdaDevice(factory, deviceName, params) {
+ *
+ *        // Additional PVs and nodes
+ *
+ *        rootNode.initialize(this, factory);
+ *    };
+ * }
+ * ```
  */
 class ndsdaDevice {
 private:
