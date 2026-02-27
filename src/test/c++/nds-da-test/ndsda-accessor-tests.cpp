@@ -1,3 +1,11 @@
+/**
+ * @file ndsda-accessor-tests.cpp
+ * @brief NDS-DA Accessor unit tests
+ *
+ * @author David Andrino - I2A2 UPM
+ * @copyright GNU General Public License v3.0
+ * @date 2026-02
+ */
 #include <gtest/gtest.h>
 #include <nds3/exceptions.h>
 #include <cmath>

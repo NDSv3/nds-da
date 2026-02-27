@@ -1,4 +1,11 @@
-
+/**
+ * @file ndsda-bridge-tests.cpp
+ * @brief NDS-DA Bridge unit tests
+ *
+ * @author David Andrino - I2A2 UPM
+ * @copyright GNU General Public License v3.0
+ * @date 2026-02
+ */
 #include <gtest/gtest.h>
 #include <nds3/nds.h>
 #include <nds3/ndsTestFactory.h>

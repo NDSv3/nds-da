@@ -1,3 +1,11 @@
+/**
+ * @file ndsdaDevice.cpp
+ * @brief NDS-DA Device base class implementation
+ *
+ * @author David Andrino - I2A2 UPM
+ * @copyright GNU General Public License v3.0
+ * @date 2026-02
+ */
 #include "ndsdaDevice.hpp"
 #include <ctime>
 #include <optional>

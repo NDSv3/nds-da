@@ -1,3 +1,11 @@
+/**
+ * @file nds-da-test.cpp
+ * @brief NDS-DA Test main entry point
+ *
+ * @author David Andrino - I2A2 UPM
+ * @copyright GNU General Public License v3.0
+ * @date 2026-02
+ */
 #include <gtest/gtest.h>
 #include <nds3/nds.h>
 #include <nds3/ndsTestFactory.h>

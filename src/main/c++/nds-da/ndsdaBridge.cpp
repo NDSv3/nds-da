@@ -1,3 +1,11 @@
+/**
+ * @file ndsdaBridge.cpp
+ * @brief NDS-DA Middle layer for data conversion implementation
+ *
+ * @author David Andrino - I2A2 UPM
+ * @copyright GNU General Public License v3.0
+ * @date 2026-02
+ */
 #include "ndsdaBridge.hpp"
 #include <ChimeraTK/Exception.h>
 #include <ChimeraTK/OneDRegisterAccessor.h>

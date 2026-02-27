@@ -1,3 +1,11 @@
+/**
+ * @file ndsda-test-common.hpp
+ * @brief NDS-DA Test fixtures and common test utilities
+ *
+ * @author David Andrino - I2A2 UPM
+ * @copyright GNU General Public License v3.0
+ * @date 2026-02
+ */
 #ifndef NDS_DA_TEST_FIXTURE
 #define NDS_DA_TEST_FIXTURE
 

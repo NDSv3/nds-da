@@ -1,3 +1,11 @@
+/**
+ * @file ndsda-test-constants.hpp
+ * @brief NDS-DA Test constants and expected values
+ *
+ * @author David Andrino - I2A2 UPM
+ * @copyright GNU General Public License v3.0
+ * @date 2026-02
+ */
 #ifndef NDSDA_TEST_CONSTANTS_H
 #define NDSDA_TEST_CONSTANTS_H
 

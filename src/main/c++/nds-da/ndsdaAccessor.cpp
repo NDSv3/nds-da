@@ -1,3 +1,11 @@
+/**
+ * @file ndsdaAccessor.cpp
+ * @brief NDS-DA Low-level DA interface implementation
+ *
+ * @author David Andrino - I2A2 UPM
+ * @copyright GNU General Public License v3.0
+ * @date 2026-02
+ */
 #include "ndsdaAccessor.hpp"
 #include <nds3/exceptions.h>
 
