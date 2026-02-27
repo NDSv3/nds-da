@@ -20,10 +20,10 @@ stages:
 #         paths:
 #             - build/coverage/details
 build-docs:
-    image: nakatt/doxygen
+    image: python:3.12-alpine
     stage: build-test
     script:
-        - cd docs
+        - apk add --no-cache doxygen graphviz ttf-freefont make
         - pip install -r docs/requirements.txt
         - make -C docs html
         - mkdir -p public
