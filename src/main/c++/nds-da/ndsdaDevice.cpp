@@ -79,7 +79,7 @@ ndsdaDevice::ndsdaDevice(nds::Factory& factory, const std::string& deviceName, c
         throw nds::NdsError("Failed to create DAAccessor: " + std::string(e.what()));
     }
 
-    rootNode.initialize(this, factory);
+    // rootNode.initialize(this, factory);
 }
 
 ndsdaDevice::~ndsdaDevice() {}

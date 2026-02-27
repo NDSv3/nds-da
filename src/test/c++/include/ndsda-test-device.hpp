@@ -16,7 +16,9 @@ namespace ndsda {
 class Device : ndsda::ndsdaDevice {
 public:
     Device(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
-        : ndsda::ndsdaDevice(factory, deviceName, params) {}
+        : ndsda::ndsdaDevice(factory, deviceName, params) {
+        rootNode.initialize(this, factory);
+    }
 };
 
 }  // namespace ndsda
