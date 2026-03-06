@@ -1,24 +1,28 @@
-# image: registry.i2a2.local/nds-deviceaccess:latest
+image: registry.i2a2.upm.es/iter/nds/nds-deviceaccess:latest
+
+workflow:
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "main"'
 
 stages:
     - build-test
     - deploy
 
-# build-sources:
-#     stage: build-test
-#     script:
-#         - cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
-#         - cmake --build build --target all
-#         - ctest --test-dir build --output-on-failure --output-junit tests.xml
-#         - cmake --build build --target coverage
-#     artifacts:
-#         reports:
-#             junit: build/tests.xml
-#             coverage_report:
-#                 coverage_format: cobertura
-#                 path: build/coverage/coverage.xml
-#         paths:
-#             - build/coverage/details
+build-sources:
+    stage: build-test
+    script:
+        - cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
+        - cmake --build build --target all
+        - ctest --test-dir build --output-on-failure --output-junit tests.xml
+        - cmake --build build --target coverage
+    artifacts:
+        reports:
+            junit: build/tests.xml
+            coverage_report:
+                coverage_format: cobertura
+                path: build/coverage/coverage.xml
+        paths:
+            - build/coverage/details
 build-docs:
     image: python:3.12-alpine
     stage: build-test
@@ -36,14 +40,14 @@ build-docs:
 pages:
     stage: deploy
     needs:
-        # - job: build-sources
-        #   artifacts: true
+        - job: build-sources
+          artifacts: true
         - job: build-docs
           artifacts: true
     script:
         - echo "Deploying to GitLab Pages..."
-    #     - mkdir -p public/coverage
-    #     - cp -r build/coverage/details/* public/coverage/
+        - mkdir -p public/coverage
+        - cp -r build/coverage/details/* public/coverage/
     artifacts:
         paths:
             - public
