@@ -88,9 +88,10 @@ set(CPACK_PACKAGE_DESCRIPTION "Compatibility layer for NDS3-based devices to be 
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "NDS3 - Deviceaccess compatibility layer")
 set(CPACK_RPM_PACKAGE_LICENSE "ITER")
 set(CPACK_PACKAGE_VENDOR "I2A2")
-set(CPACK_RPM_SPEC_MORE_DEFINE "%define _build_id_links none")
+set(CPACK_RPM_SPEC_MORE_DEFINE "%define _build_id_links none\n%define __strip /bin/true")
 set(CPACK_RPM_PACKAGE_AUTOREQ 0) # TODO: Set requires / Fix so locations
 set(CPACK_RPM_PACKAGE_AUTOPROV 1) # TODO: Set provides
+set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 
 include(CPack)
 
