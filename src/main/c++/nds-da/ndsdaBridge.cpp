@@ -17,7 +17,7 @@
 #include "ndsdaAccessor.hpp"
 #include "ndsdaCommon.hpp"
 
-using ndsda::DABridge;
+using ndsda::DABridge, ndsda::Result, ndsda::ndsdaError;
 
 DABridge::DABridge(std::unique_ptr<ndsda::DAAccessor> daAccessor) {
     if (!daAccessor) {
@@ -26,76 +26,61 @@ DABridge::DABridge(std::unique_ptr<ndsda::DAAccessor> daAccessor) {
     this->daAccessor = std::move(daAccessor);
 }
 
-static auto TRY_RESULT = [](auto&& expression, auto&& errorPrefix) {
-    auto res = (expression);
-    if (res.has_error()) {
-        throw ndsda::ndsdaError(errorPrefix + std::string(res.assume_error().what()));
-    }
-    return std::move(res).assume_value();
-};
-static auto TRY_OPTION_ERROR = [](auto&& expression, auto&& errorPrefix) {
-    auto res = (expression);
-    if (res.has_value()) {
-        throw ndsda::ndsdaError(errorPrefix + res.value().what());
-    }
-};
+// static auto TRY_RESULT = [](auto&& expression, auto&& errorPrefix) {
+//     auto res = (expression);
+//     if (res.has_error()) {
+//         throw ndsda::ndsdaError(errorPrefix + std::string(res.assume_error().what()));
+//     }
+//     return std::move(res).assume_value();
+// };
+// static auto TRY_OPTION_ERROR = [](auto&& expression, auto&& errorPrefix) {
+//     auto res = (expression);
+//     if (res.has_value()) {
+//         throw ndsda::ndsdaError(errorPrefix + res.value().what());
+//     }
+// };
 
 template <ndsda::PVDataType PVType>
-static PVType dispatchedReadPV(timespec* ts, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor);
+Result<PVType> dispatchedReadPV(const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor);
 template <ndsda::PVDataType PVType>
-static void dispatchedWritePV(timespec ts, const PVType& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor);
-
-template <ndsda::PVDataType PVType>
-void DABridge::readPV(timespec* ts, PVType* value, const ndsda::NodeMapPV& pv) {
-    clock_gettime(CLOCK_REALTIME, ts);
-    *value = dispatchedReadPV<PVType>(ts, pv, *daAccessor);
-}
-
-template <ndsda::PVDataType PVType>
-void DABridge::writePV(timespec ts, const PVType& value, const ndsda::NodeMapPV& pv) {
-    (void)ts;
-
-    dispatchedWritePV<PVType>(ts, value, pv, *daAccessor);
-}
+std::optional<ndsdaError> dispatchedWritePV(const PVType& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor);
 
 template <ndsda::PVWordType PVType>  // Read Scalar registers
-static PVType dispatchedReadPV(timespec* ts, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
-    (void)ts;
-
+Result<PVType> dispatchedReadPV(const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
     if (pv.memoryElement->getType() != ndsda::MemoryElementType::SCALAR) {
-        throw ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as scalar, but it is not");
+        return ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as scalar, but it is not");
     }
     auto& reg = static_cast<ndsda::RegisterElement&>(*pv.memoryElement);
 
-    return TRY_RESULT(daAccessor.readRegister<PVType>(reg), "Failed to read PV '" + pv.name + "': ");
+    return daAccessor.readRegister<PVType>(reg);
 }
 
 template <ndsda::PVWordVectorType PVType>  // Read vector/1D registers
-static PVType dispatchedReadPV(timespec* ts, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
-    (void)ts;
-
+Result<PVType> dispatchedReadPV(const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
     if (pv.memoryElement->getType() != ndsda::MemoryElementType::ONE_D) {
-        throw ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as 1D, but it is not");
+        return ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as 1D, but it is not");
     }
 
     auto& reg = static_cast<ndsda::OneDElement&>(*pv.memoryElement);
 
-    return TRY_RESULT(daAccessor.readOneDRegister<typename PVType::value_type>(reg), "Failed to read PV '" + pv.name + "': ");
+    return daAccessor.readOneDRegister<typename PVType::value_type>(reg);
 }
 
 template <>  // Special handling of vector<bool>
-std::vector<bool> dispatchedReadPV(timespec* ts, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
-    (void)ts;
-
+Result<std::vector<bool>> dispatchedReadPV(const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
     if (pv.memoryElement->getType() != ndsda::MemoryElementType::ONE_D) {
-        throw ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as 1D, but it is not");
+        return ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as 1D, but it is not");
     }
 
     auto& reg = static_cast<ndsda::OneDElement&>(*pv.memoryElement);
 
-    auto booleanVec = TRY_RESULT(daAccessor.readOneDRegister<ChimeraTK::Boolean>(reg), "Failed to read PV '" + pv.name + "': ");
+    auto readResult = daAccessor.readOneDRegister<ChimeraTK::Boolean>(reg);
+    if (!readResult) {
+        return readResult.assume_error();
+    }
 
-    auto vec = std::vector<bool>();
+    auto& booleanVec = readResult.value();
+    auto vec         = std::vector<bool>();
     vec.reserve(booleanVec.size());
     std::transform(booleanVec.begin(), booleanVec.end(), std::back_inserter(vec), [](ChimeraTK::Boolean b) {
         return static_cast<bool>(b);
@@ -104,61 +89,53 @@ std::vector<bool> dispatchedReadPV(timespec* ts, const ndsda::NodeMapPV& pv, nds
 }
 
 template <>  // Specialization for std::string
-std::string dispatchedReadPV(timespec* ts, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
-    (void)ts;
-
+Result<std::string> dispatchedReadPV(const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
     if (pv.memoryElement->getType() != ndsda::MemoryElementType::ONE_D) {
-        throw ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as 1D, but it is not");
+        return ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as 1D, but it is not");
     }
 
     auto& reg = static_cast<ndsda::OneDElement&>(*pv.memoryElement);
 
-    auto res     = TRY_RESULT(daAccessor.readOneDRegister<uint8_t>(reg), "Failed to read PV '" + pv.name + "': ");
-    auto nullPos = std::find(res.begin(), res.end(), '\0');  // Terminate string on first NULL
-    return std::string(res.begin(), nullPos);
+    auto res = daAccessor.readOneDRegister<uint8_t>(reg);
+    if (!res) {
+        return res.assume_error();
+    }
+    auto& strRes = res.value();
+    auto nullPos = std::find(strRes.begin(), strRes.end(), '\0');  // Terminate string on first NULL
+    return std::string(strRes.begin(), nullPos);
 }
 
 template <ndsda::PVDataType PVType>  // Fallback to error
-static PVType dispatchedReadPV(timespec* ts, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
-    (void)ts;
+Result<PVType> dispatchedReadPV(const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
     (void)pv;
     (void)daAccessor;
-    throw ndsda::ndsdaError("DeviceAccess does not support double word types yet");  // TODO:
+    return ndsda::ndsdaError("DeviceAccess does not support double word types yet");  // TODO:
 }
 
 template <ndsda::PVWordType PVType>
-static void dispatchedWritePV(timespec ts, const PVType& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
-    (void)ts;
-
+std::optional<ndsdaError> dispatchedWritePV(const PVType& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
     if (pv.memoryElement->getType() != ndsda::MemoryElementType::SCALAR) {
-        throw ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as scalar, but it is not");
+        return ndsda::ndsdaError("Tried to write PV '" + pv.name + "' as scalar, but it is not");
     }
     auto& reg = static_cast<ndsda::RegisterElement&>(*pv.memoryElement);
 
-    TRY_OPTION_ERROR(daAccessor.writeRegister<PVType>(reg, value), "Failed to write PV '" + pv.name + "': ");
+    return daAccessor.writeRegister<PVType>(reg, value);
 }
 
 template <ndsda::PVWordVectorType PVType>
-static void dispatchedWritePV(timespec ts, const PVType& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
-    (void)ts;
-
+std::optional<ndsdaError> dispatchedWritePV(const PVType& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
     if (pv.memoryElement->getType() != ndsda::MemoryElementType::ONE_D) {
-        throw ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as 1D, but it is not");
+        return ndsda::ndsdaError("Tried to write PV '" + pv.name + "' as 1D, but it is not");
     }
     auto& reg = static_cast<ndsda::OneDElement&>(*pv.memoryElement);
 
-    auto res = daAccessor.writeOneDRegister<typename PVType::value_type>(reg, value);
-    if (res) {
-        throw ndsda::ndsdaError("Failed to write PV '" + pv.name + "': " + std::string(res->what()));
-    }
+    return daAccessor.writeOneDRegister<typename PVType::value_type>(reg, value);
 }
 
 template <>
-void dispatchedWritePV<std::vector<bool>>(timespec ts, const std::vector<bool>& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
-    (void)ts;
-
+std::optional<ndsdaError> dispatchedWritePV<std::vector<bool>>(const std::vector<bool>& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
     if (pv.memoryElement->getType() != ndsda::MemoryElementType::ONE_D) {
-        throw ndsda::ndsdaError("Tried to read PV '" + pv.name + "' as 1D, but it is not");
+        return ndsda::ndsdaError("Tried to write PV '" + pv.name + "' as 1D, but it is not");
     }
     auto& reg = static_cast<ndsda::OneDElement&>(*pv.memoryElement);
 
@@ -168,39 +145,50 @@ void dispatchedWritePV<std::vector<bool>>(timespec ts, const std::vector<bool>& 
         return static_cast<ChimeraTK::Boolean>(b);
     });
 
-    auto res = daAccessor.writeOneDRegister<ChimeraTK::Boolean>(reg, convertedValue);
-    if (res) {
-        throw ndsda::ndsdaError("Failed to write PV '" + pv.name + "': " + std::string(res->what()));
-    }
+    return daAccessor.writeOneDRegister<ChimeraTK::Boolean>(reg, convertedValue);
 }
 
 template <>  // Specialization for std::string
-void dispatchedWritePV<std::string>(timespec ts, const std::string& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
-    (void)ts;
-
+std::optional<ndsdaError> dispatchedWritePV<std::string>(const std::string& value, const ndsda::NodeMapPV& pv, ndsda::DAAccessor& daAccessor) {
     if (pv.memoryElement->getType() != ndsda::MemoryElementType::ONE_D) {
-        throw ndsda::ndsdaError("Tried to write PV '" + pv.name + "' as 1D, but it is not");
+        return ndsda::ndsdaError("Tried to write PV '" + pv.name + "' as 1D, but it is not");
     }
     auto& reg = static_cast<ndsda::OneDElement&>(*pv.memoryElement);
 
     std::vector<uint8_t> convertedValue(value.begin(), value.end());
 
-    auto res = daAccessor.writeOneDRegister<uint8_t>(reg, convertedValue);
-    if (res) {
-        throw ndsda::ndsdaError("Failed to write PV '" + pv.name + "': " + std::string(res->what()));
+    return daAccessor.writeOneDRegister<uint8_t>(reg, convertedValue);
+}
+
+template <ndsda::PVDataType PVType>
+std::optional<ndsdaError> dispatchedWritePV(const PVType&, const ndsda::NodeMapPV&, ndsda::DAAccessor&) {
+    return ndsda::ndsdaError("DAAccessor does not support double word types yet");  // TODO:
+}
+
+template <ndsda::PVDataType PVType>
+Result<std::pair<PVType, timespec>> DABridge::readPV(const ndsda::NodeMapPV& pv) {
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    auto val = dispatchedReadPV<PVType>(pv, *daAccessor);
+
+    if (val) {
+        return std::make_pair(val.value(), ts);
+    } else {
+        return val.as_failure();
     }
 }
 
 template <ndsda::PVDataType PVType>
-// requires(!ndsda::PVWordType<PVType> && !ndsda::PVVectorType<PVType>)  // Idk why required here and not on read
-static void dispatchedWritePV(timespec, const PVType&, const ndsda::NodeMapPV&, ndsda::DAAccessor&) {
-    throw ndsda::ndsdaError("DAAccessor does not support double word types yet");  // TODO:
+std::optional<ndsdaError> DABridge::writePV(timespec ts, const PVType& value, const ndsda::NodeMapPV& pv) {
+    (void)ts;
+    return dispatchedWritePV<PVType>(value, pv, *daAccessor);
 }
+
 // Explicit template instantiations
 
-#define INSTANTIATE_TEMPLATE(TYPE)                                      \
-    template void DABridge::readPV(timespec*, TYPE*, const NodeMapPV&); \
-    template void DABridge::writePV(timespec, const TYPE&, const NodeMapPV&);
+#define INSTANTIATE_TEMPLATE(TYPE)                                                                            \
+    template ndsda::Result<std::pair<TYPE, timespec>> ndsda::DABridge::readPV<TYPE>(const ndsda::NodeMapPV&); \
+    template std::optional<ndsda::ndsdaError> ndsda::DABridge::writePV<TYPE>(timespec, const TYPE&, const ndsda::NodeMapPV&);
 
 INSTANTIATE_TEMPLATE(std::int32_t)
 INSTANTIATE_TEMPLATE(std::int64_t)

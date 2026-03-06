@@ -7,6 +7,7 @@
  * @date 2026-02
  */
 #include "ndsdaDevice.hpp"
+#include <algorithm>
 #include <ctime>
 #include <optional>
 #include <utility>
@@ -112,10 +113,19 @@ std::optional<ndsda::ndsdaError> ndsdaDevice::mergeMapElements(
 
 std::optional<ndsda::ndsdaError> ndsdaDevice::generatePVs(const ndsda::NodeMapPV& nodeMapPV) {
     auto readLambda = [&b = this->daBridge, &pv = nodeMapPV]<PVDataType T>(timespec* ts, T* value) {
-        b->readPV(ts, value, pv);
+        auto readPair = b->readPV<T>(pv);
+        if (readPair.has_value()) {
+            *value = readPair.value().first;
+            *ts    = readPair.value().second;
+        } else {
+            throw ndsda::ndsdaError("Failed to read PV '" + pv.name + "': " + readPair.assume_error().what());
+        }
     };
     auto writeLambda = [&b = this->daBridge, &pv = nodeMapPV]<PVDataType T>(timespec ts, T value) {
-        b->writePV(ts, value, pv);
+        auto writeRes = b->writePV(ts, value, pv);
+        if (writeRes.has_value()) {
+            throw ndsda::ndsdaError("Failed to write PV '" + pv.name + "': " + writeRes.value().what());
+        }
     };
 
     // Templated lambda, called by visitor pattern with the PV type

@@ -41,28 +41,27 @@ TEST_F(ndsDABridgeFixture, WriteScalarToOneDException) {
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::VECINT32];
 
     timespec ts = {0, 0};
-    EXPECT_THROW(
-        bridge.writePV(ts, 0, *pv),
-        ndsda::ndsdaError
-    );
+    auto err    = bridge.writePV(ts, 0, *pv);
+    ASSERT_TRUE(err.has_value());
 }
 
 TEST_F(ndsDABridgeFixture, WriteVectorToScalarException) {
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::INTEGER32];
 
-    EXPECT_THROW(
-        bridge.writePV({0, 0}, std::vector<int32_t>(0), *pv),
-        ndsda::ndsdaError
-    );
+    timespec ts = {0, 0};
+    auto err    = bridge.writePV(ts, std::vector<int32_t>(0), *pv);
+    ASSERT_TRUE(err.has_value());
 }
 
 TEST_F(ndsDABridgeFixture, ReadI32) {
     const int32_t testValue                    = randomSigned(INT32_MAX);
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::INTEGER32];
-    timespec ts;
-    int32_t value;
     DATestHelper::getInstance().writeRegister(pv->reg, testValue);
-    bridge.readPV(&ts, &value, *pv);
+
+    auto res = bridge.readPV<int32_t>(*pv);
+    ASSERT_TRUE(res) << "ReadPV returned an error: " << res.assume_error().what();
+
+    auto [value, ts] = res.value();
     ASSERT_NE(ts.tv_nsec, 0) << "ReadPV did not set timestamp";
     ASSERT_NE(ts.tv_sec, 0) << "ReadPV did not set timestamp";
     ASSERT_EQ(testValue, value) << "ReadPV value does not match written value";
@@ -70,8 +69,11 @@ TEST_F(ndsDABridgeFixture, ReadI32) {
 TEST_F(ndsDABridgeFixture, WriteI32) {
     const int32_t testValue                    = std::rand() % INT32_MAX;
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::INTEGER32];
-    timespec ts                                = {0, 0};
-    bridge.writePV(ts, testValue, *pv);
+
+    timespec ts = {0, 0};
+    auto err    = bridge.writePV(ts, testValue, *pv);
+
+    ASSERT_FALSE(err.has_value()) << "WritePV returned an error: " << err.value().what();
     int32_t value = DATestHelper::getInstance().readRegister<uint32_t>(pv->reg);
     ASSERT_EQ(testValue, value) << "WritePV value does not match read value";
 }
@@ -80,11 +82,12 @@ TEST_F(ndsDABridgeFixture, ReadFloatBitcast) {
     const float testValue                      = randomFloat();
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::FLOATBITCAST];
 
-    timespec ts;
-    float value;
-
     DATestHelper::getInstance().writeRegister(pv->reg, testValue);
-    bridge.readPV(&ts, &value, *pv);
+
+    auto res = bridge.readPV<float>(*pv);
+    ASSERT_TRUE(res) << "ReadPV returned an error: " << res.assume_error().what();
+
+    auto [value, ts] = res.value();
     ASSERT_NE(ts.tv_nsec, 0) << "ReadPV did not set timestamp";
     ASSERT_NE(ts.tv_sec, 0) << "ReadPV did not set timestamp";
     ASSERT_EQ(testValue, value) << "ReadPV value does not match written value";
@@ -94,7 +97,8 @@ TEST_F(ndsDABridgeFixture, WriteFloatBitcast) {
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::FLOATBITCAST];
 
     timespec ts = {0, 0};
-    bridge.writePV(ts, testValue, *pv);
+    auto err    = bridge.writePV(ts, testValue, *pv);
+    ASSERT_FALSE(err.has_value()) << "WritePV returned an error: " << err.value().what();
     float value = DATestHelper::getInstance().readRegister<float>(pv->reg);
 
     ASSERT_EQ(value, testValue) << "WritePV value does not match read value";
@@ -105,12 +109,12 @@ TEST_F(ndsDABridgeFixture, ReadFloatFixed8) {
     const float LSB                            = 1.0f / static_cast<float>(1 << 8);
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::FLOATFIXED8];
 
-    timespec ts;
-    float value;
-
     DATestHelper::getInstance().writeRegister(pv->reg, static_cast<float>(testValue));
 
-    bridge.readPV(&ts, &value, *pv);
+    auto res = bridge.readPV<float>(*pv);
+    ASSERT_TRUE(res) << "ReadPV returned an error: " << res.assume_error().what();
+
+    auto [value, ts] = res.value();
     ASSERT_NE(ts.tv_nsec, 0) << "ReadPV did not set timestamp";
     ASSERT_NE(ts.tv_sec, 0) << "ReadPV did not set timestamp";
     ASSERT_NEAR(testValue, value, LSB) << "ReadPV value does not match written value";
@@ -122,7 +126,9 @@ TEST_F(ndsDABridgeFixture, WriteFloatFixed8) {
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::FLOATFIXED8];
 
     timespec ts = {0, 0};
-    bridge.writePV(ts, testValue, *pv);
+    auto err    = bridge.writePV(ts, testValue, *pv);
+
+    ASSERT_FALSE(err.has_value()) << "WritePV returned an error: " << err.value().what();
     float value = DATestHelper::getInstance().readRegister<float>(pv->reg);
 
     ASSERT_NEAR(value, testValue, LSB) << "WritePV value does not match read value";
@@ -134,12 +140,12 @@ TEST_F(ndsDABridgeFixture, ReadFloatFixed16) {
 
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::FLOATFIXED16];
 
-    timespec ts;
-    float value;
-
     DATestHelper::getInstance().writeRegister(pv->reg, static_cast<float>(testValue));
 
-    bridge.readPV(&ts, &value, *pv);
+    auto res = bridge.readPV<float>(*pv);
+    ASSERT_TRUE(res.has_value()) << "ReadPV returned an error: " << res.assume_error().what();
+
+    auto [value, ts] = res.value();
     ASSERT_NE(ts.tv_nsec, 0) << "ReadPV did not set timestamp";
     ASSERT_NE(ts.tv_sec, 0) << "ReadPV did not set timestamp";
     ASSERT_NEAR(testValue, value, LSB) << "ReadPV value does not match written value";
@@ -152,7 +158,9 @@ TEST_F(ndsDABridgeFixture, WriteFloatFixed16) {
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::FLOATFIXED16];
 
     timespec ts = {0, 0};
-    bridge.writePV(ts, testValue, *pv);
+    auto err    = bridge.writePV(ts, testValue, *pv);
+
+    ASSERT_FALSE(err.has_value()) << "WritePV returned an error: " << err.value().what();
     float value = DATestHelper::getInstance().readRegister<float>(pv->reg);
 
     ASSERT_NEAR(value, testValue, LSB) << "WritePV value does not match read value";
@@ -160,15 +168,15 @@ TEST_F(ndsDABridgeFixture, WriteFloatFixed16) {
 
 #define NDSDA_TESTF_ONEDTESTS(TYPE, PVIDX, RANDOM_VALUE_GENERATION)                                                    \
     TEST_F(ndsDABridgeFixture, ReadOneD##TYPE) {                                                                       \
-        timespec ts;                                                                                                   \
         std::array<TYPE, NDSDA_TEST_ONEDELEMENTS> writeArray;                                                          \
-        std::vector<TYPE> readArray(NDSDA_TEST_ONEDELEMENTS);                                                          \
         for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {                                                         \
             writeArray[i] = (RANDOM_VALUE_GENERATION);                                                                 \
         }                                                                                                              \
         const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[PVIDX];                                        \
         DATestHelper::getInstance().writeOneD<TYPE>(pv->reg, writeArray);                                              \
-        bridge.readPV(&ts, &readArray, *pv);                                                                           \
+        auto res = bridge.readPV<std::vector<TYPE>>(*pv);                                                              \
+        ASSERT_TRUE(res) << "ReadPV returned an error: " << res.assume_error().what();                                 \
+        auto [readArray, ts] = res.value();                                                                            \
         ASSERT_NE(ts.tv_nsec, 0) << "ReadPV did not set timestamp";                                                    \
         ASSERT_NE(ts.tv_sec, 0) << "ReadPV did not set timestamp";                                                     \
         for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {                                                         \
@@ -182,7 +190,8 @@ TEST_F(ndsDABridgeFixture, WriteFloatFixed16) {
             writeArray.push_back(RANDOM_VALUE_GENERATION);                                                             \
         }                                                                                                              \
         const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[PVIDX];                                        \
-        bridge.writePV(ts, writeArray, *pv);                                                                           \
+        auto error                                 = bridge.writePV(ts, writeArray, *pv);                              \
+        ASSERT_FALSE(error.has_value()) << "WritePV returned an error: " << error.value().what();                      \
         std::array<TYPE, NDSDA_TEST_ONEDELEMENTS> readArray = DATestHelper::getInstance().readOneD<TYPE>(pv->reg);     \
         for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {                                                         \
             ASSERT_EQ(writeArray[i], readArray[i]) << "WritePV OneD value does not match read value at index " << i;   \
@@ -202,9 +211,7 @@ using floatbitcast = float;
 NDSDA_TESTF_ONEDTESTS(floatbitcast, expectedPVIdx::VECFLOATBITCAST, randomFloat())
 
 TEST_F(ndsDABridgeFixture, ReadOneDFloatFixed8) {
-    timespec ts;
     std::array<float, NDSDA_TEST_ONEDELEMENTS> writeArray;
-    std::vector<float> readArray(NDSDA_TEST_ONEDELEMENTS);
     float LSB = 1.0f / static_cast<float>(1 << 8);
 
     for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {
@@ -213,7 +220,10 @@ TEST_F(ndsDABridgeFixture, ReadOneDFloatFixed8) {
 
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::VECFLOATFIXED8];
     DATestHelper::getInstance().writeOneD<float>(pv->reg, writeArray);
-    bridge.readPV(&ts, &readArray, *pv);
+    auto res = bridge.readPV<std::vector<float>>(*pv);
+
+    ASSERT_TRUE(res) << "ReadPV returned an error: " << res.assume_error().what();
+    auto [readArray, ts] = res.value();
 
     ASSERT_NE(ts.tv_nsec, 0) << "ReadPV did not set timestamp";
     ASSERT_NE(ts.tv_sec, 0) << "ReadPV did not set timestamp";
@@ -231,7 +241,9 @@ TEST_F(ndsDABridgeFixture, WriteOneDFloatFixed8) {
     }
 
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::VECFLOATFIXED8];
-    bridge.writePV(ts, writeArray, *pv);
+    auto error                                 = bridge.writePV(ts, writeArray, *pv);
+    ASSERT_FALSE(error.has_value()) << "WritePV returned an error: " << error.value().what();
+
     std::array<float, NDSDA_TEST_ONEDELEMENTS> readArray = DATestHelper::getInstance().readOneD<float>(pv->reg);
 
     for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) {
@@ -240,9 +252,7 @@ TEST_F(ndsDABridgeFixture, WriteOneDFloatFixed8) {
 }
 
 TEST_F(ndsDABridgeFixture, ReadString) {
-    timespec ts                               = {0, 0};
     static constexpr std::string randomString = "asdf1234";
-    std::string readStr;
     std::array<uint8_t, NDSDA_TEST_ONEDELEMENTS> stringArray{};
 
     static_assert(stringArray.size() >= randomString.size());
@@ -251,7 +261,10 @@ TEST_F(ndsDABridgeFixture, ReadString) {
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::STRING];
 
     DATestHelper::getInstance().writeOneD(pv->reg, stringArray);
-    bridge.readPV(&ts, &readStr, *pv);
+    auto res = bridge.readPV<std::string>(*pv);
+
+    ASSERT_TRUE(res) << "ReadPV returned an error: " << res.assume_error().what();
+    auto [readStr, ts] = res.value();
 
     ASSERT_NE(ts.tv_nsec, 0) << "ReadPV did not set timestamp";
     ASSERT_NE(ts.tv_sec, 0) << "ReadPV did not set timestamp";
@@ -262,7 +275,9 @@ TEST_F(ndsDABridgeFixture, WriteString) {
     static constexpr std::string writeStr = "xyz0987";
 
     const std::shared_ptr<ndsda::NodeMapPV> pv = expectedNodeMapPVs[expectedPVIdx::STRING];
-    bridge.writePV(ts, writeStr, *pv);
+    auto error                                 = bridge.writePV(ts, writeStr, *pv);
+
+    ASSERT_FALSE(error.has_value()) << "WritePV returned an error: " << error.value().what();
 
     auto readArr = DATestHelper::getInstance().readOneD<uint8_t>(pv->reg) | std::views::take(writeStr.size());
 

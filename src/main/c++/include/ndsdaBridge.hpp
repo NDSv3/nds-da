@@ -36,7 +36,7 @@ public:
      * @param pv Node map PV description
      */
     template <ndsda::PVDataType PVType>
-    void readPV(timespec* ts, PVType* value, const NodeMapPV& pv);
+    Result<std::pair<PVType, timespec>> readPV(const NodeMapPV& pv);
 
     /**
      * @brief Write a PV value to the device
@@ -46,7 +46,7 @@ public:
      * @param pv Node map PV description
      */
     template <ndsda::PVDataType PVType>
-    void writePV(timespec ts, const PVType& value, const NodeMapPV& pv);
+    std::optional<ndsda::ndsdaError> writePV(timespec ts, const PVType& value, const NodeMapPV& pv);
 
 private:
     /**

@@ -103,6 +103,25 @@ void visitPVType(PVTypeEnum type, V&& visitor) {
         case PVTypeEnum::VEC_DOUBLE: visitor(std::type_identity<std::vector<double>>{});   break;
     }
 }
+
+template <typename T>
+inline constexpr PVTypeEnum TtoPVTypeEnum = []() { static_assert(false, "Unsupported PV data type"); };
+
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<int32_t>               = PVTypeEnum::INT32;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<int64_t>               = PVTypeEnum::INT64;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<float>                 = PVTypeEnum::FLOAT;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<double>                = PVTypeEnum::DOUBLE;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::string>           = PVTypeEnum::STRING;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<bool>>     = PVTypeEnum::VEC_BOOL;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<uint8_t>>  = PVTypeEnum::VEC_UINT8;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<uint16_t>> = PVTypeEnum::VEC_UINT16;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<uint32_t>> = PVTypeEnum::VEC_UINT32;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<int8_t>>   = PVTypeEnum::VEC_INT8;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<int16_t>>  = PVTypeEnum::VEC_INT16;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<int32_t>>  = PVTypeEnum::VEC_INT32;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<int64_t>>  = PVTypeEnum::VEC_INT64;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<float>>    = PVTypeEnum::VEC_FLOAT;
+template <> inline constexpr PVTypeEnum TtoPVTypeEnum<std::vector<double>>   = PVTypeEnum::VEC_DOUBLE;
 // clang-format on
 
 /**
@@ -332,7 +351,7 @@ struct NodeMapPV {
     /**
      * @brief NDS PV name
      *
-     * The name of the process variable as it appears in the NDS control system.
+     * Base name of the pv, used to generate the read and write PVs (if not overridden)
      */
     std::string name;
 
