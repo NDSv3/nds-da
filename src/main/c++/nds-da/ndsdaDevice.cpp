@@ -82,7 +82,6 @@ ndsdaDevice::ndsdaDevice(nds::Factory& factory, const std::string& deviceName, c
 
     // rootNode.initialize(this, factory);
 }
-
 ndsdaDevice::~ndsdaDevice() {}
 
 std::optional<ndsda::ndsdaError> ndsdaDevice::mergeMapElements(
@@ -137,3 +136,53 @@ std::optional<ndsda::ndsdaError> ndsdaDevice::generatePVs(const ndsda::NodeMapPV
 
     return std::nullopt;  // OK
 }
+
+template <ndsda::PVDataType T>
+Result<std::pair<T, timespec>> ndsdaDevice::readPV(const std::string& pv) {
+    auto nodePV = std::find_if(this->nodeMapPVs.begin(), this->nodeMapPVs.end(), [pv](const std::shared_ptr<ndsda::NodeMapPV>& nodePV) {
+        return nodePV->readPV == pv || nodePV->name == pv;
+    });
+    if (nodePV == this->nodeMapPVs.end()) {
+        return ndsda::ndsdaError("PV '" + pv + "' not found");
+    } else if ((**nodePV).type != TtoPVTypeEnum<T>) {
+        return ndsda::ndsdaError("PV '" + pv + "' has incompatible type");
+    } else {
+        return daBridge->readPV<T>(**nodePV);
+    }
+}
+
+template <ndsda::PVDataType T>
+std::optional<ndsda::ndsdaError> ndsdaDevice::writePV(const std::string& pv, T&& value, timespec ts) {
+    auto nodePV = std::find_if(this->nodeMapPVs.begin(), this->nodeMapPVs.end(), [pv](const std::shared_ptr<ndsda::NodeMapPV>& nodePV) {
+        return nodePV->writePV == pv || nodePV->name == pv;
+    });
+    if (nodePV == this->nodeMapPVs.end()) {
+        return ndsda::ndsdaError("PV '" + pv + "' not found");
+    } else if ((**nodePV).type != TtoPVTypeEnum<T>) {
+        return ndsda::ndsdaError("PV '" + pv + "' has incompatible type");
+    } else {
+        return daBridge->writePV(ts, value, **nodePV);
+    }
+}
+
+#define INSTANTIATE_READWRITEPV_TEMPLATE(TYPE)                                                              \
+    template ndsda::Result<std::pair<TYPE, timespec>> ndsda::ndsdaDevice::readPV<TYPE>(const std::string&); \
+    template std::optional<ndsda::ndsdaError> ndsda::ndsdaDevice::writePV<TYPE>(const std::string&, TYPE&&, timespec);
+
+INSTANTIATE_READWRITEPV_TEMPLATE(std::int32_t)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::int64_t)
+INSTANTIATE_READWRITEPV_TEMPLATE(float)
+INSTANTIATE_READWRITEPV_TEMPLATE(double)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::string)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<bool>)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<std::uint8_t>)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<std::uint16_t>)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<std::uint32_t>)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<std::int8_t>)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<std::int16_t>)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<std::int32_t>)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<std::int64_t>)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<float>)
+INSTANTIATE_READWRITEPV_TEMPLATE(std::vector<double>)
+
+#undef INSTANTIATE_READWRITEPV_TEMPLATE
