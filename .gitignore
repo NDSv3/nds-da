@@ -1,4 +1,6 @@
 build
 .vscode
+.zed
+.cache
 .clangd
 docs/_*
