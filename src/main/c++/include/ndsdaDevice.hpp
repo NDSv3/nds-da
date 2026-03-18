@@ -125,16 +125,17 @@ protected:
      */
     ~ndsdaDevice();
 
-    template <PVDataType T>
-    Result<std::pair<T, timespec>> readPV(const std::string& pv);
-
-    template <PVDataType T>
-    std::optional<ndsda::ndsdaError> writePV(const std::string& pv, T&& value, timespec ts);
-
     /**
      * @brief Root NDS node for PV registration
      */
     nds::Port rootNode;
+
+public:
+    template <PVDataType T>
+    Result<std::pair<T, timespec>> readPV(const std::string& pv);
+
+    template <PVDataType T>
+    std::optional<ndsda::ndsdaError> writePV(const std::string& pv, const T& value, timespec ts);
 };
 
 }  // namespace ndsda

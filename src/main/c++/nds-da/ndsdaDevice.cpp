@@ -82,6 +82,7 @@ ndsdaDevice::ndsdaDevice(nds::Factory& factory, const std::string& deviceName, c
 
     // rootNode.initialize(this, factory);
 }
+
 ndsdaDevice::~ndsdaDevice() {}
 
 std::optional<ndsda::ndsdaError> ndsdaDevice::mergeMapElements(
@@ -152,7 +153,7 @@ Result<std::pair<T, timespec>> ndsdaDevice::readPV(const std::string& pv) {
 }
 
 template <ndsda::PVDataType T>
-std::optional<ndsda::ndsdaError> ndsdaDevice::writePV(const std::string& pv, T&& value, timespec ts) {
+std::optional<ndsda::ndsdaError> ndsdaDevice::writePV(const std::string& pv, const T& value, timespec ts) {
     auto nodePV = std::find_if(this->nodeMapPVs.begin(), this->nodeMapPVs.end(), [pv](const std::shared_ptr<ndsda::NodeMapPV>& nodePV) {
         return nodePV->writePV == pv || nodePV->name == pv;
     });
@@ -167,7 +168,7 @@ std::optional<ndsda::ndsdaError> ndsdaDevice::writePV(const std::string& pv, T&&
 
 #define INSTANTIATE_READWRITEPV_TEMPLATE(TYPE)                                                              \
     template ndsda::Result<std::pair<TYPE, timespec>> ndsda::ndsdaDevice::readPV<TYPE>(const std::string&); \
-    template std::optional<ndsda::ndsdaError> ndsda::ndsdaDevice::writePV<TYPE>(const std::string&, TYPE&&, timespec);
+    template std::optional<ndsda::ndsdaError> ndsda::ndsdaDevice::writePV<TYPE>(const std::string&, const TYPE&, timespec);
 
 INSTANTIATE_READWRITEPV_TEMPLATE(std::int32_t)
 INSTANTIATE_READWRITEPV_TEMPLATE(std::int64_t)
