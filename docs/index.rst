@@ -13,4 +13,4 @@ NDS-DeviceAccess Documentation
 Coverage
 --------
 
-`Coverage report </coverage/coverage.html>`_ for the unit tests of the library.
+`Coverage report <./coverage.html>`_ for the unit tests of the library.
