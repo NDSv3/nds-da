@@ -6,6 +6,7 @@ workflow:
 
 stages:
     - build-test
+    - build-docs
     - deploy
 
 build-sources:
@@ -23,31 +24,30 @@ build-sources:
                 path: build/coverage/coverage.xml
         paths:
             - build/coverage/details
+
 build-docs:
     image: python:3.12-alpine
-    stage: build-test
+    stage: build-docs
+    needs:
+        - build-sources
     script:
         - apk add --no-cache doxygen graphviz ttf-freefont make
         - pip install -r docs/requirements.txt
+        - mkdir -p docs/_coverage
+        - cp -r build/coverage/details/* docs/_coverage/
         - make -C docs html
-        - mkdir -p public
-        - cp -r docs/_build/html/* public/
     artifacts:
         paths:
-            - public
+            - docs/_build/html
         expire_in: 1 min
 
 pages:
     stage: deploy
     needs:
-        - job: build-sources
-          artifacts: true
-        - job: build-docs
-          artifacts: true
+        - build-docs
     script:
-        - echo "Deploying to GitLab Pages..."
-        - mkdir -p public/coverage
-        - cp -r build/coverage/details/* public/coverage/
+        - mkdir -p public
+        - cp -r docs/_build/html/* public/
     artifacts:
         paths:
             - public

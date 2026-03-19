@@ -13,7 +13,7 @@ author = 'David Andrino - I2A2'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = [ "breathe", "exhale" ]
+extensions = [ "breathe", "exhale", "sphinxcontrib.mermaid" ]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
@@ -23,6 +23,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'furo'
 html_static_path = ['_static']
+html_extra_path = ['_coverage']
 
 breathe_projects = {
     "NDS-DeviceAccess": "_doxygen/xml"

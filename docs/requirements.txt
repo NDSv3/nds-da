@@ -4,3 +4,4 @@ fonttools==4.55.3
 furo==2024.8.6
 Sphinx==7.2.6
 sphinx_basic_ng==1.0.0b2
+sphinxcontrib-mermaid==2.0.1

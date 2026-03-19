@@ -1,8 +1,3 @@
-.. NDS-DeviceAccess documentation master file, created by
-   sphinx-quickstart on Fri Feb 27 09:04:29 2026.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 NDS-DeviceAccess Documentation
 ==============================
 
@@ -14,3 +9,8 @@ NDS-DeviceAccess Documentation
    compilation.rst
    driver_implementation.rst
    _exhale/ndsda-api.rst
+
+Coverage
+--------
+
+`Coverage report </coverage/coverage.html>`_ for the unit tests of the library.
