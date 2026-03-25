@@ -123,7 +123,7 @@ target_include_directories(nds-da-test PRIVATE
     "src/test/c++/include"
 )
 set_target_properties(nds-da-test PROPERTIES
-    BUILD_RPATH "/usr/local/lib64/"
+    BUILD_RPATH "$<TARGET_FILE_DIR:nds-da>;/usr/local/lib64/"
 )
 
 include(GoogleTest)
@@ -176,9 +176,10 @@ if(ENABLE_COVERAGE)
         COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR}/details
         COMMAND ${CMAKE_COMMAND} -E make_directory ${COVERAGE_DIR}/nested
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} -e ".*test.*" --html-details ${COVERAGE_DIR}/details/coverage.html
-        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} -e ".*test.*" --html-nested ${COVERAGE_DIR}/nested/coverage.html
-        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} -e ".*test.*" -x ${COVERAGE_DIR}/coverage.xml
+        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} -e ".*test.*" --gcov-executable ${GCOV_EXECUTABLE} --lcov --output ${COVERAGE_DIR}/lcov.info
+        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} -e ".*test.*" --gcov-executable ${GCOV_EXECUTABLE} --html-details --output ${COVERAGE_DIR}/details/coverage.html
+        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} -e ".*test.*" --gcov-executable ${GCOV_EXECUTABLE} --html-nested --output ${COVERAGE_DIR}/nested/coverage.html
+        COMMAND ${GCOVR_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} -e ".*test.*" --gcov-executable ${GCOV_EXECUTABLE} --xml --output ${COVERAGE_DIR}/coverage.xml
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DEPENDS nds-da-test
     )
