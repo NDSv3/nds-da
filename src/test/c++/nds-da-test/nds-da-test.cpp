@@ -13,6 +13,7 @@
 #include "ndsda-test-device.hpp"
 
 using ndsda::Device;
+ndsda::Device* ndsda::Device::instance = nullptr;
 NDS_DEFINE_DRIVER(DADevice, Device)
 
 int main(int argc, char** argv) {

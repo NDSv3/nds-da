@@ -13,11 +13,14 @@
 
 namespace ndsda {
 
-class Device : ndsda::ndsdaDevice {
+class Device : public ndsda::ndsdaDevice {
 public:
+    static Device* instance;
+
     Device(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& params)
         : ndsda::ndsdaDevice(factory, deviceName, params) {
         rootNode.initialize(this, factory);
+        Device::instance = this;
     }
 };
 
