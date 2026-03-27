@@ -38,19 +38,4 @@
         <ndsda:PV name="HUNDREDI32VEC"  register=".HUNDREDI32VEC"  type="vector(int32)"  nElem="100"/>
 
     </ndsda:PVMap>
-
-    <!-- <ndsda:FirmwareNode>
-        <name>Firmware 1</name>
-        <Version>xxx</Version>             <!- - VariableIn  string - ->
-        <Status>xxx</Status>               <!- - VariableIn  int32  - ->
-        <HWRevision>xxx</HWRevision>       <!- - VariableIn  string - ->
-        <SerialNumber>xxx</SerialNumber>   <!- - VariableIn  string - ->
-        <Model>xxx</Model>                 <!- - VariableIn  string - ->
-        <Type>xxx</Type>                   <!- - VariableIn  string - ->
-        <DriverVersion>xxx</DriverVersion> <!- - VariableIn  string - ->
-        <ChassisNumber>xxx</ChassisNumber> <!- - VariableIn  int32  - ->
-        <SlotNumber>xxx</SlotNumber>       <!- - VariableIn  int32  - ->
-        <FilePath>xxx</FilePath>           <!- - DelegateOut string - ->
-        <FilePath_RBV>xxx</FilePath_RBV>   <!- - VariableIn  string - ->
-    </ndsda:FirmwareNode> -->
 </ndsda:NodeMap>

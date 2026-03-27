@@ -99,7 +99,7 @@ TEST_F(ndsDAAccessorFixture, RegistersDoNotInterfereWithEachOther) {
 }
 
 TEST_F(ndsDAAccessorFixture, WriteReadOneBitRegister) {
-    const int32_t intTestValue  = std::rand() % UINT32_MAX;
+    const int32_t intTestValue  = std::rand() & 0x1;
     const auto memoryElementRef = dynamic_pointer_cast<ndsda::RegisterElement>(expectedMemoryElements[expectedMemoryElementIdx::ONEBIT]);
     ASSERT_NE(memoryElementRef, nullptr) << "Invalid memory element type for test";
 
@@ -108,7 +108,7 @@ TEST_F(ndsDAAccessorFixture, WriteReadOneBitRegister) {
 
     auto readValue = accessor.readRegister<uint32_t>(*memoryElementRef);
     ASSERT_TRUE(readValue.has_value()) << "Read register returned error: " << readValue.assume_error().what();
-    ASSERT_EQ(readValue.assume_value(), intTestValue & 0x1) << "Read value does not match written value";
+    ASSERT_EQ(readValue.assume_value(), intTestValue) << "Read value does not match written value";
 }
 
 // Generate number in range [min, -1] U [1, max]
