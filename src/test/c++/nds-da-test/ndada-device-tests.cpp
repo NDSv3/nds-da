@@ -205,3 +205,49 @@ NDSDA_TESTF_VECTORPVTEST(int16_t, expectedPVIdx::VECINT16, randomSigned(INT16_MA
 NDSDA_TESTF_VECTORPVTEST(int32_t, expectedPVIdx::VECINT32, randomSigned(INT32_MAX))
 NDSDA_TESTF_VECTORPVTEST(float, expectedPVIdx::VECFLOATBITCAST, randomFloat())
 NDSDA_TESTF_VECTORFLOATNEARPVTEST(expectedPVIdx::VECFLOATFIXED8, randomFloat(), 8)
+
+static bool errorContains(const std::string& error_msg, const std::string& substring) {
+    return error_msg.find(substring) != std::string::npos;
+}
+
+TEST_F(ndsDABasicDeviceFixture, ReadPV_NonExistentPV_Error) {
+    auto read_result = ndsda::Device::instance->readPV<int32_t>("NonExistentPV");
+    ASSERT_FALSE(read_result.has_value());
+    EXPECT_TRUE(errorContains(read_result.assume_error().what(), "not found"));
+}
+TEST_F(ndsDABasicDeviceFixture, WritePV_NonExistentPV_Error) {
+    int32_t write_value = 42;
+    timespec ts         = {0, 0};
+
+    auto write_result = ndsda::Device::instance->writePV("NonExistentPV", write_value, ts);
+    ASSERT_TRUE(write_result.has_value());
+    EXPECT_TRUE(errorContains(write_result.value().what(), "not found"));
+}
+
+TEST_F(ndsDABasicDeviceFixture, ReadPV_TypeMismatch_Int32AsFloat) {
+    auto read_result = ndsda::Device::instance->readPV<float>("INTEGER32");
+    ASSERT_FALSE(read_result.has_value());
+    EXPECT_TRUE(errorContains(read_result.assume_error().what(), "incompatible type"));
+}
+TEST_F(ndsDABasicDeviceFixture, ReadPV_TypeMismatch_ScalarAsVector) {
+    auto read_result = ndsda::Device::instance->readPV<std::vector<int32_t>>("INTEGER32");
+    ASSERT_FALSE(read_result.has_value());
+    EXPECT_TRUE(errorContains(read_result.assume_error().what(), "incompatible type"));
+}
+
+TEST_F(ndsDABasicDeviceFixture, WritePV_TypeMismatch_FloatToInt32) {
+    float write_value = 3.14f;
+    timespec ts       = {0, 0};
+
+    auto write_result = ndsda::Device::instance->writePV("INTEGER32", write_value, ts);
+    ASSERT_TRUE(write_result.has_value());
+    EXPECT_TRUE(errorContains(write_result.value().what(), "incompatible type"));
+}
+TEST_F(ndsDABasicDeviceFixture, WritePV_TypeMismatch_ScalarToVector) {
+    int32_t write_value = 42;
+    timespec ts         = {0, 0};
+
+    auto write_result = ndsda::Device::instance->writePV("VECINT32", write_value, ts);
+    ASSERT_TRUE(write_result.has_value());
+    EXPECT_TRUE(errorContains(write_result.value().what(), "incompatible type"));
+}
