@@ -12,6 +12,7 @@
 #include <ctime>
 #include "ndsda-test-common.hpp"
 #include "ndsda-test-constants.hpp"
+#include "ndsda-test-device.hpp"
 
 TEST(DeviceTests, MissingDeviceMap_Exception) {
     nds::Factory factory("test");
@@ -120,40 +121,72 @@ TEST_F(ndsDABasicDeviceFixture, GetNodeMapFile) {
     iface->writeCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[PV_IDX]->writePV, tmp_time, write_value); \
     iface->readCSValue("/deviceAccessDevice-" + expectedNodeMapPVs[PV_IDX]->readPV, &tmp_time, &read_value);
 
-#define NDSDA_TESTF_SCALARPVTEST(TYPE, PV_IDX, RANDOM_GEN)   \
-    TEST_F(ndsDABasicDeviceFixture, WriteReadScalar##TYPE) { \
-        TYPE write_value = (RANDOM_GEN);                     \
-        NDSDA_TESTF_TESTBASE(TYPE, PV_IDX, RANDOM_GEN)       \
-        EXPECT_EQ(write_value, read_value);                  \
+#define NDSDA_TESTF_DIRECT_BASE(TYPE, PV_IDX)                                                                   \
+    timespec ts       = {0, 0};                                                                                 \
+    auto write_result = ndsda::Device::instance->writePV(expectedNodeMapPVs[PV_IDX]->writePV, write_value, ts); \
+    ASSERT_FALSE(write_result.has_value());                                                                     \
+    auto direct_read_result = ndsda::Device::instance->readPV<TYPE>(expectedNodeMapPVs[PV_IDX]->readPV);        \
+    ASSERT_TRUE(direct_read_result.has_value());
+
+#define NDSDA_TESTF_FILL_VECTOR(RANDOM_GEN)                \
+    for (size_t i = 0; i < NDSDA_TEST_ONEDELEMENTS; ++i) { \
+        write_value.push_back(RANDOM_GEN);                 \
     }
-#define NDSDA_TESTF_SCALARFLOATNEARPVTEST(PV_IDX, RANDOM_GEN, FIXEDBITS)                \
-    TEST_F(ndsDABasicDeviceFixture, WriteReadFloatFixed##FIXEDBITS) {                   \
-        float write_value = (RANDOM_GEN);                                               \
-        NDSDA_TESTF_TESTBASE(float, PV_IDX, RANDOM_GEN)                                 \
-        EXPECT_NEAR(write_value, read_value, 1.0 / static_cast<float>(1 << FIXEDBITS)); \
+
+#define NDSDA_TESTF_SCALARPVTEST(TYPE, PV_IDX, RANDOM_GEN)         \
+    TEST_F(ndsDABasicDeviceFixture, WriteReadScalar##TYPE) {       \
+        TYPE write_value = (RANDOM_GEN);                           \
+        NDSDA_TESTF_TESTBASE(TYPE, PV_IDX, RANDOM_GEN)             \
+        EXPECT_EQ(write_value, read_value);                        \
+    }                                                              \
+    TEST_F(ndsDABasicDeviceFixture, DirectWriteReadScalar##TYPE) { \
+        TYPE write_value = (RANDOM_GEN);                           \
+        NDSDA_TESTF_DIRECT_BASE(TYPE, PV_IDX)                      \
+        EXPECT_EQ(write_value, direct_read_result.value().first);  \
+    }
+#define NDSDA_TESTF_SCALARFLOATNEARPVTEST(PV_IDX, RANDOM_GEN, FIXEDBITS)                                      \
+    TEST_F(ndsDABasicDeviceFixture, WriteReadFloatFixed##FIXEDBITS) {                                         \
+        float write_value = (RANDOM_GEN);                                                                     \
+        NDSDA_TESTF_TESTBASE(float, PV_IDX, RANDOM_GEN)                                                       \
+        EXPECT_NEAR(write_value, read_value, 1.0 / static_cast<float>(1 << FIXEDBITS));                       \
+    }                                                                                                         \
+    TEST_F(ndsDABasicDeviceFixture, DirectWriteReadFloatFixed##FIXEDBITS) {                                   \
+        float write_value = (RANDOM_GEN);                                                                     \
+        NDSDA_TESTF_DIRECT_BASE(float, PV_IDX)                                                                \
+        EXPECT_NEAR(write_value, direct_read_result.value().first, 1.0 / static_cast<float>(1 << FIXEDBITS)); \
     }
 
 #define NDSDA_TESTF_VECTORPVTEST(TYPE, PV_IDX, RANDOM_GEN)          \
     TEST_F(ndsDABasicDeviceFixture, WriteReadVector##TYPE) {        \
         std::vector<TYPE> write_value;                              \
-        for (size_t i = 0; i < write_value.size(); i++) {           \
-            write_value.push_back(RANDOM_GEN);                      \
-        }                                                           \
+        NDSDA_TESTF_FILL_VECTOR(RANDOM_GEN)                         \
         NDSDA_TESTF_TESTBASE(std::vector<TYPE>, PV_IDX, RANDOM_GEN) \
         for (size_t i = 0; i < write_value.size(); ++i) {           \
             ASSERT_EQ(write_value[i], read_value[i]);               \
         }                                                           \
+    }                                                               \
+    TEST_F(ndsDABasicDeviceFixture, DirectWriteReadVector##TYPE) {  \
+        std::vector<TYPE> write_value;                              \
+        NDSDA_TESTF_FILL_VECTOR(RANDOM_GEN)                         \
+        NDSDA_TESTF_DIRECT_BASE(std::vector<TYPE>, PV_IDX)          \
+        EXPECT_EQ(write_value, direct_read_result.value().first);   \
     }
-#define NDSDA_TESTF_VECTORFLOATNEARPVTEST(PV_IDX, RANDOM_GEN, FIXEDBITS)                          \
-    TEST_F(ndsDABasicDeviceFixture, WriteReadVectorFloatFixed##FIXEDBITS) {                       \
-        std::vector<float> write_value;                                                           \
-        for (size_t i = 0; i < write_value.size(); i++) {                                         \
-            write_value.push_back(RANDOM_GEN);                                                    \
-        }                                                                                         \
-        NDSDA_TESTF_TESTBASE(std::vector<float>, PV_IDX, RANDOM_GEN)                              \
-        for (size_t i = 0; i < write_value.size(); ++i) {                                         \
-            ASSERT_NEAR(write_value[i], read_value[i], 1.0 / static_cast<float>(1 << FIXEDBITS)); \
-        }                                                                                         \
+#define NDSDA_TESTF_VECTORFLOATNEARPVTEST(PV_IDX, RANDOM_GEN, FIXEDBITS)                                                \
+    TEST_F(ndsDABasicDeviceFixture, WriteReadVectorFloatFixed##FIXEDBITS) {                                             \
+        std::vector<float> write_value;                                                                                 \
+        NDSDA_TESTF_FILL_VECTOR(RANDOM_GEN)                                                                             \
+        NDSDA_TESTF_TESTBASE(std::vector<float>, PV_IDX, RANDOM_GEN)                                                    \
+        for (size_t i = 0; i < write_value.size(); ++i) {                                                               \
+            ASSERT_NEAR(write_value[i], read_value[i], 1.0 / static_cast<float>(1 << FIXEDBITS));                       \
+        }                                                                                                               \
+    }                                                                                                                   \
+    TEST_F(ndsDABasicDeviceFixture, DirectWriteReadVectorFloatFixed##FIXEDBITS) {                                       \
+        std::vector<float> write_value;                                                                                 \
+        NDSDA_TESTF_FILL_VECTOR(RANDOM_GEN)                                                                             \
+        NDSDA_TESTF_DIRECT_BASE(std::vector<float>, PV_IDX)                                                             \
+        for (size_t i = 0; i < write_value.size(); ++i) {                                                               \
+            ASSERT_NEAR(write_value[i], direct_read_result.value().first[i], 1.0 / static_cast<float>(1 << FIXEDBITS)); \
+        }                                                                                                               \
     }
 
 using String = std::string;
