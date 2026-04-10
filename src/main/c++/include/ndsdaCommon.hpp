@@ -182,12 +182,20 @@ struct MemoryElement {
     size_t fracBits;
     size_t elementWidthBits;
     bool isSigned;
+    mutable std::once_flag accessorInitFlag;
 
     MemoryElement(const std::string& name, size_t elementWidthBits = 32, size_t fracBits = 0, bool isSigned = false)
         : name(generateRegName(name)),
           fracBits(fracBits),
           elementWidthBits(elementWidthBits),
           isSigned(isSigned) {};
+
+    // Copy constructor, because once_flag deletes it
+    explicit MemoryElement(const MemoryElement& other)
+        : name(other.name),
+          fracBits(other.fracBits),
+          elementWidthBits(other.elementWidthBits),
+          isSigned(other.isSigned) {};
 
     virtual MemoryElementType getType() const = 0;
     virtual ~MemoryElement()                  = default;
@@ -249,7 +257,11 @@ public:
      * @param isSigned Whether the register is signed
      */
     RegisterElement(const std::string& name, size_t elementSizeBits, size_t fracBits, bool isSigned)
+
         : MemoryElement(name, elementSizeBits, fracBits, isSigned), daAccessor(std::nullopt) {};
+    // Copy constructor
+    RegisterElement(const RegisterElement& other)
+        : MemoryElement(other), daAccessor(std::nullopt) {};
 
     /**
      * @brief Get the element type
@@ -311,6 +323,10 @@ struct OneDElement : MemoryElement {
         : MemoryElement(name, elementSize, fracBits, isSigned),
           elements(elements),
           daAccessor(std::nullopt) {};
+
+    // Copy constructor
+    OneDElement(const OneDElement& other)
+        : MemoryElement(other), elements(other.elements), daAccessor(std::nullopt) {};
 
     /**
      * @brief Get the element type

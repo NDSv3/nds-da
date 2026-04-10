@@ -10,6 +10,7 @@
 #define NDSDA_ACCESSOR_H
 
 #include "ndsdaCommon.hpp"
+#include <shared_mutex>
 
 namespace ndsda {
 
@@ -125,6 +126,13 @@ private:
      * The underlying ChimeraTK Device object used for all hardware access operations.
      */
     ChimeraTK::Device daDevice;
+
+    /**
+     * @brief Mutex for thread-safe access to the device
+     *
+     * Ensures that concurrent register access operations are serialized to prevent errors
+     */
+    std::shared_mutex accessorMutex;
 };
 
 }  // namespace ndsda

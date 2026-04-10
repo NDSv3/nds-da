@@ -9,6 +9,8 @@
 #include "ndsdaAccessor.hpp"
 #include <nds3/exceptions.h>
 
+#include <mutex>
+
 using nds::NdsError;
 using ndsda::DAAccessor, ndsda::Result, ndsda::ndsdaError, ndsda::DARegisterType;
 
@@ -27,11 +29,12 @@ DAAccessor::~DAAccessor() {
 
 template <DARegisterType RegisterType>
 Result<RegisterType> DAAccessor::readRegister(const RegisterElement& reg) {
-    if (!reg.daAccessor) {
+    std::call_once(reg.accessorInitFlag, [&]() {
         reg.daAccessor.emplace(daDevice.getScalarRegisterAccessor<RegisterType>(reg.name));
-    }
+    });
 
     try {
+        std::shared_lock<std::shared_mutex> readLock(accessorMutex);
         auto& acc = std::get<ChimeraTK::ScalarRegisterAccessor<RegisterType>>(reg.daAccessor.value());
         return acc.readAndGet();
     } catch (const std::bad_variant_access&) {
@@ -41,14 +44,14 @@ Result<RegisterType> DAAccessor::readRegister(const RegisterElement& reg) {
 
 template <DARegisterType RegisterType>
 std::optional<ndsdaError> DAAccessor::writeRegister(const RegisterElement& reg, RegisterType value) {
-    if (!reg.daAccessor) {
+    std::call_once(reg.accessorInitFlag, [&]() {
         reg.daAccessor.emplace(daDevice.getScalarRegisterAccessor<RegisterType>(reg.name));
-    }
+    });
 
     try {
+        std::unique_lock<std::shared_mutex> writeLock(accessorMutex);
         auto& acc = std::get<ChimeraTK::ScalarRegisterAccessor<RegisterType>>(reg.daAccessor.value());
         acc.setAndWrite(value);
-
     } catch (const std::bad_variant_access&) {
         return ndsdaError("Tried to write register " + reg.name + " with incompatible type");
     }
@@ -58,11 +61,12 @@ std::optional<ndsdaError> DAAccessor::writeRegister(const RegisterElement& reg, 
 
 template <DARegisterType RegisterType>
 Result<std::vector<RegisterType>> DAAccessor::readOneDRegister(const OneDElement& reg) {
-    if (!reg.daAccessor) {
+    std::call_once(reg.accessorInitFlag, [&]() {
         reg.daAccessor.emplace(daDevice.getOneDRegisterAccessor<RegisterType>(reg.name));
-    }
+    });
 
     try {
+        std::shared_lock<std::shared_mutex> readLock(accessorMutex);
         auto& acc = std::get<ChimeraTK::OneDRegisterAccessor<RegisterType>>(reg.daAccessor.value());
         acc.read();
         return std::vector<RegisterType>(acc.begin(), acc.end());
@@ -77,11 +81,12 @@ std::optional<ndsdaError> DAAccessor::writeOneDRegister(const OneDElement& reg, 
         return ndsdaError("Register " + reg.name + " expects " + std::to_string(reg.elements) + " elements, but " + std::to_string(values.size()) + " were provided");
     }
 
-    if (!reg.daAccessor) {
+    std::call_once(reg.accessorInitFlag, [&]() {
         reg.daAccessor.emplace(daDevice.getOneDRegisterAccessor<RegisterType>(reg.name));
-    }
+    });
 
     try {
+        std::unique_lock<std::shared_mutex> writeLock(accessorMutex);
         auto& accessor = std::get<ChimeraTK::OneDRegisterAccessor<RegisterType>>(reg.daAccessor.value());
         std::copy(values.begin(), values.end(), accessor.begin());
         accessor.write();
