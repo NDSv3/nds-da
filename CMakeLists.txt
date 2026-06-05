@@ -289,15 +289,17 @@ if(VALGRIND_EXECUTABLE)
     # recent cachegrind/callgrind outputs to text summaries.
     if(CG_ANNOTATE_EXECUTABLE)
         add_custom_command(TARGET valgrind-all POST_BUILD
-            COMMAND /bin/sh -c "f=$(ls -1t created \"${CMAKE_BINARY_DIR}/cachegrind.out.*\" 2>/dev/null | head -n1); \"${CG_ANNOTATE_EXECUTABLE}\" \"$f\" \"${CMAKE_BINARY_DIR}/cachegrind.txt\""
+            COMMAND /bin/sh -c "ls -t cachegrind.out.* 2>/dev/null | head -n1 | xargs -r ${CG_ANNOTATE_EXECUTABLE} > cachegrind.txt"
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            VERBATIM
         )
     endif()
 
     if(CALLGRIND_ANNOTATE_EXECUTABLE)
         add_custom_command(TARGET valgrind-all POST_BUILD
-            COMMAND /bin/sh -c "f=$(ls -1t created \"${CMAKE_BINARY_DIR}/callgrind.out.*\" 2>/dev/null | head -n1); \"${CALLGRIND_ANNOTATE_EXECUTABLE}\" \"$f\" \"${CMAKE_BINARY_DIR}/callgrind.txt\""
+            COMMAND /bin/sh -c "ls -t callgrind.out.* 2>/dev/null | head -n1 | xargs -r ${CALLGRIND_ANNOTATE_EXECUTABLE} > callgrind.txt"
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            VERBATIM
         )
     endif()
 else()
