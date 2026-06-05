@@ -111,6 +111,7 @@ add_executable(nds-da-test
     "src/test/c++/nds-da-test/ndsda-file-parser-tests.cpp"
     "src/test/c++/nds-da-test/ndsda-bridge-tests.cpp"
     "src/test/c++/nds-da-test/ndsda-accessor-tests.cpp"
+    "src/test/c++/nds-da-test/ndsda-branch-coverage-tests.cpp"
 )
 target_compile_options(nds-da-test PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(nds-da-test PRIVATE
