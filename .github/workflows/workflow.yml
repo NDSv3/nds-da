@@ -1,3 +1,4 @@
+
 name: Build and Publish Documentation
 
 on:
@@ -16,12 +17,58 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-docs:
+  build-test:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ndsv3/nds-da:latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_COVERAGE=ON
+
+      - name: Build sources
+        run: cmake --build build --target all
+
+      - name: Run tests
+        run: |
+          ctest --test-dir build \
+            --output-on-failure \
+            --output-junit build/tests.xml
+
+      - name: Generate coverage
+        run: cmake --build build --target coverage
+
+      - name: Publish test and coverage results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-and-coverage-results
+          path: |
+            build/tests.xml
+            build/coverage/coverage.xml
+            build/coverage/details/
+          if-no-files-found: warn
+          retention-days: 7
+
+  build-docs:
+    runs-on: ubuntu-latest
+    needs: build-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: test-and-coverage-results
+          path: build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -41,9 +88,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r docs/requirements.txt
 
-      # TODO: Integrate coverage reports from the build workflow.
       - name: Prepare documentation
-        run: mkdir -p docs/_coverage
+        run: |
+          mkdir -p docs/_coverage
+          cp -r build/coverage/details/. docs/_coverage/
 
       - name: Build documentation
         run: make -C docs html
