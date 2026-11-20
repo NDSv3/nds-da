@@ -3,8 +3,10 @@
  * @brief NDS-DA Middle layer for data conversion implementation
  *
  * @author David Andrino - I2A2 UPM
- * @copyright GNU General Public License v3.0
+ * @copyright 2026 I2A2-UPM
  * @date 2026-02
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 #include "ndsdaBridge.hpp"
 #include <ChimeraTK/Exception.h>

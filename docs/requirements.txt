@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 I2A2-UPM
 breathe==4.35.0
 exhale==0.3.7
 fonttools==4.55.3

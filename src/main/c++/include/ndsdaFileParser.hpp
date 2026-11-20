@@ -3,8 +3,10 @@
  * @brief NDS-DA File parsing utilities
  *
  * @author David Andrino - I2A2 UPM
- * @copyright GNU General Public License v3.0
+ * @copyright 2026 I2A2-UPM
  * @date 2026-02
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 #ifndef NDS_DA_FILE_PARSER
 #define NDS_DA_FILE_PARSER

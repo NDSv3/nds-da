@@ -3,8 +3,10 @@
  * @brief NDS-DA Low-level DA interface implementation
  *
  * @author David Andrino - I2A2 UPM
- * @copyright GNU General Public License v3.0
+ * @copyright 2026 I2A2-UPM
  * @date 2026-02
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 #include "ndsdaAccessor.hpp"
 #include <nds3/exceptions.h>

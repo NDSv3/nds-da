@@ -3,8 +3,10 @@
  * @brief NDS-DA Device base class definition
  *
  * @author David Andrino - I2A2 UPM
- * @copyright GNU General Public License v3.0
+ * @copyright 2026 I2A2-UPM
  * @date 2026-02
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 #ifndef NDS_DA_MAIN_H
 #define NDS_DA_MAIN_H

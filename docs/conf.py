@@ -1,3 +1,6 @@
+# Copyright 2026 I2A2-UPM
+# SPDX-License-Identifier: Apache-2.0
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -7,7 +10,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'NDS-DeviceAccess'
-copyright = '2026, David Andrino - I2A2'
+copyright = '2026, I2A2-UPM'
 author = 'David Andrino - I2A2'
 
 # -- General configuration ---------------------------------------------------

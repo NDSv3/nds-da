@@ -1,3 +1,6 @@
+# Copyright 2026 I2A2-UPM
+# SPDX-License-Identifier: Apache-2.0
+
 cmake_minimum_required(VERSION 3.23)
 
 project(NDS-DeviceAccess)
@@ -86,7 +89,7 @@ set(CPACK_PACKAGE_MANTAINER "David Andrino <david.andrino@upm.es>")
 set(CPACK_PACKAGE_RELEASE 1)
 set(CPACK_PACKAGE_DESCRIPTION "Compatibility layer for NDS3-based devices to be used with ChimeraTK-DeviceAccess.")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "NDS3 - Deviceaccess compatibility layer")
-set(CPACK_RPM_PACKAGE_LICENSE "ITER")
+set(CPACK_RPM_PACKAGE_LICENSE "Apache-2.0")
 set(CPACK_PACKAGE_VENDOR "I2A2")
 set(CPACK_RPM_SPEC_MORE_DEFINE "%define _build_id_links none\n%define __strip /bin/true")
 set(CPACK_RPM_PACKAGE_AUTOREQ 0) # TODO: Set requires / Fix so locations

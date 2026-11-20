@@ -3,8 +3,10 @@
  * @brief Additional tests targeting uncovered branches across the NDS-DA codebase
  *
  * @author David Andrino - I2A2 UPM
- * @copyright GNU General Public License v3.0
+ * @copyright 2026 I2A2-UPM
  * @date 2026-06
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 #include <gtest/gtest.h>
 #include <nds3/exceptions.h>
